@@ -13,6 +13,7 @@ await copyFile(
   "dist/runtime/WLLAMA-LICENSE.txt",
 );
 await copyFile("THIRD_PARTY_NOTICES.md", "dist/THIRD_PARTY_NOTICES.md");
+await copyFile("LICENSE", "dist/LICENSE");
 await build({
   entryPoints: ["src/pages/jev/page.ts"],
   outfile: "dist/page.js",

@@ -1,0 +1,522 @@
+{
+  "checked_on": "2026-09-28",
+  "scope": "Source/build-configuration and supplied symbol-table review; not a reproducible-build attestation or exhaustive object-level SBOM",
+  "wllama": {
+    "version": "3.6.1",
+    "git_head": "c35450cf9597eaf901293b12458cae204aea0b65",
+    "llama_commit": "83d855c5a6d70487121edbf4020b25c96b7a04e7",
+    "generated_version": "b10663-83d855c",
+    "wasm_sha256": "6ca9fdd1b6c03206cd3a04e359b52c8f539896d6c5fb5d36243dded4a689f0ad",
+    "emscripten_build_version": "4.0.20",
+    "emdawn_release": "v20260317.182325",
+    "emdawn_commit": "18eb229ef5f707c1464cc581252e7603c73a3ef0",
+    "npm_integrity": "sha512-v6cA0w6sHuaTLmUo9nSU37Sln+5YqZy/OGWp2dXWaR3ts26yLiMnKHGGbjdzQolPSPydPSKUlHHSKZgXK5Prkw==",
+    "emdawn_zip_sha256": "8dcae86c630d76b6794b271c6572becba36f4237d132bee121a56638c3d76575"
+  },
+  "packages": [
+    {
+      "path": "node_modules/@esbuild/aix-ppc64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/android-arm",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/android-arm64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/android-x64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/darwin-arm64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/darwin-x64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/freebsd-arm64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/freebsd-x64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/linux-arm",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/linux-arm64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/linux-ia32",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/linux-loong64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/linux-mips64el",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/linux-ppc64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/linux-riscv64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/linux-s390x",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/linux-x64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/netbsd-arm64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/netbsd-x64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/openbsd-arm64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/openbsd-x64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/openharmony-arm64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/sunos-x64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/win32-arm64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/win32-ia32",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@esbuild/win32-x64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/@types/chrome",
+      "version": "0.1.24",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/@types/filesystem",
+      "version": "0.0.36",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/@types/filewriter",
+      "version": "0.0.33",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/@types/har-format",
+      "version": "1.2.16",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/@types/node",
+      "version": "22.19.15",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/@wllama/wllama",
+      "version": "3.6.1",
+      "license": "MIT",
+      "development": false,
+      "optional": false
+    },
+    {
+      "path": "node_modules/esbuild",
+      "version": "0.25.12",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/fsevents",
+      "version": "2.3.2",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/get-tsconfig",
+      "version": "4.14.3",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/playwright",
+      "version": "1.58.2",
+      "license": "Apache-2.0",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/playwright-core",
+      "version": "1.58.2",
+      "license": "Apache-2.0",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/prettier",
+      "version": "3.6.2",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/resolve-pkg-maps",
+      "version": "1.0.0",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/tsx",
+      "version": "4.21.0",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/aix-ppc64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/android-arm",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/android-arm64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/android-x64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/darwin-arm64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/darwin-x64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/freebsd-arm64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/freebsd-x64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/linux-arm",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/linux-arm64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/linux-ia32",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/linux-loong64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/linux-mips64el",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/linux-ppc64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/linux-riscv64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/linux-s390x",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/linux-x64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/netbsd-arm64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/netbsd-x64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/openbsd-arm64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/openbsd-x64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/openharmony-arm64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/sunos-x64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/win32-arm64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/win32-ia32",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/@esbuild/win32-x64",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/tsx/node_modules/esbuild",
+      "version": "0.27.7",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/tsx/node_modules/fsevents",
+      "version": "2.3.3",
+      "license": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
+      "path": "node_modules/typescript",
+      "version": "5.9.3",
+      "license": "Apache-2.0",
+      "development": true,
+      "optional": false
+    },
+    {
+      "path": "node_modules/undici-types",
+      "version": "6.21.0",
+      "license": "MIT",
+      "development": true,
+      "optional": false
+    }
+  ],
+  "notices": [
+    {
+      "path": "public/licenses/EMDAWNWEBGPU-NOTICES.txt",
+      "sha256": "1df422c98ba8a05a375de9fb2f6db1509a8d76a7d429772cd6b5c201e39f5653"
+    },
+    {
+      "path": "public/licenses/LLVM-RUNTIME-NOTICES.txt",
+      "sha256": "09e65952ab761b9f4ecbfa370fe047b44de0b704a995cdb0bb7713c144f3bcbd"
+    },
+    {
+      "path": "public/licenses/WASM-UPSTREAM-NOTICES.txt",
+      "sha256": "613c6065a778bf3d7a1841b26cdda71e3a055dc7a8e0f58b89b97bc2ca4945be"
+    }
+  ]
+}

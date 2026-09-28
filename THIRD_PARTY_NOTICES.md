@@ -1,6 +1,6 @@
 # Third-party notices
 
-These notices apply to the named third-party components and adapted portions, not to all original JevWex code. JevWex's own distribution license has not been selected. Model weights and multimodal projectors are not bundled. Tested models and their separate terms are listed in the repository README.md.
+Original JevWex code is licensed under the MIT License, Copyright (c) 2026 endlessbaum; see LICENSE. The third-party components and adapted portions listed below retain their respective licenses and copyright notices. Model weights and multimodal projectors are not bundled. Tested models and their separate terms are listed in the repository README.md.
 
 ## SemIf
 
@@ -42,7 +42,7 @@ SOFTWARE.
 wllama 3.6.1 references llama.cpp commit `83d855c5a6d70487121edbf4020b25c96b7a04e7`:
 https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/LICENSE
 
-This notice covers the upstream project's MIT license. Individual vendor files have separate licenses. Additional notices for nlohmann/json, xxHash, stb_image, miniaudio, subprocess.h, SHA-1, SHA-256, Emscripten and musl are retained in `public/licenses/WASM-UPSTREAM-NOTICES.txt` in the source tree and `licenses/WASM-UPSTREAM-NOTICES.txt` in the built extension. Emscripten's version is taken from wllama's upstream build script. These source notices are not an exhaustive inventory of the distributed WASM's linked components; exact linked versions and notices for other toolchain/WebGPU components have not been fully audited.
+This notice covers the upstream project's MIT license. Individual vendor files have separate licenses. Additional notices for nlohmann/json, xxHash, stb_image, miniaudio, subprocess.h, SHA-1, SHA-256, Emscripten and musl are retained in `public/licenses/WASM-UPSTREAM-NOTICES.txt` in the source tree and `licenses/WASM-UPSTREAM-NOTICES.txt` in the built extension. Emscripten's version is taken from wllama's upstream build script. The additional review identified Emdawnwebgpu v20260317.182325 (revision 18eb229ef5f707c1464cc581252e7603c73a3ef0) and the LLVM runtime license files in Emscripten 4.0.20. Their notices are included as `public/licenses/EMDAWNWEBGPU-NOTICES.txt` and `public/licenses/LLVM-RUNTIME-NOTICES.txt` in the source tree and under `licenses/` in the built extension. These source/configuration/symbol checks are not a complete object-level binary provenance attestation. Scope and findings are documented in the repository's `docs/license-review.md`.
 
 MIT License
 

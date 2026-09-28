@@ -48,7 +48,9 @@ Chromeの拡張機能管理画面でデベロッパーモードを有効にし�
 
 ## 依存ライブラリ・参照実装の権利表記
 
-確認日: **2026-09-28**。npmのバージョンとライセンスは `package-lock.json` とインストール済みパッケージの表記を確認しています。第三者のライセンスは、それぞれのコード・モデルに適用されます。**JevWex自身のコードの配布ライセンスは現時点で未設定です**（ルートの `LICENSE` と `package.json` の `license` は未追加）。
+**JevWexの独自部分は [MIT License](LICENSE) で提供します。Copyright (c) 2026 endlessbaum。** 第三者のコード・モデルには、それぞれの元のライセンスが適用されます。ビルド済み拡張には本体の `LICENSE` と第三者の通知を同梱します。
+
+確認日: **2026-09-28**。npmのバージョンとライセンスは `package-lock.json` とインストール済みパッケージの表記を確認しています。採用判断の根拠と調査範囲は [MIT採用に関する調査](docs/license-review.md) を参照してください。
 
 ### 拡張に含まれるもの・参考にした実装
 
@@ -61,9 +63,9 @@ Chromeの拡張機能管理画面でデベロッパーモードを有効にし�
 
 wllamaは公開npm配布物を使用し、WASMをそのままコピーします。SemIfやTypeSafeのランタイム・モデルは同梱していません。著作権・許諾文は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) に記載し、ビルド時に `dist/THIRD_PARTY_NOTICES.md` と `dist/runtime/WLLAMA-LICENSE.txt` を同梱します。
 
-確認した上流部品の許諾文も [WASM-UPSTREAM-NOTICES.txt](public/licenses/WASM-UPSTREAM-NOTICES.txt) に収録し、ビルド時に `dist/licenses/` へコピーします。wllamaのビルドスクリプトが指定するEmscripten 4.0.20の通知と、同ツリーのmuslの通知も含みます。追加したのは文書のみで、ライブラリやWASMは変更していません。
+確認した上流部品の許諾文も [WASM-UPSTREAM-NOTICES.txt](public/licenses/WASM-UPSTREAM-NOTICES.txt) に収録し、ビルド時に `dist/licenses/` へコピーします。wllamaのビルドスクリプトが指定するEmscripten 4.0.20の通知と、同ツリーのmuslの通知も含みます。追加調査で [Emdawnwebgpu](public/licenses/EMDAWNWEBGPU-NOTICES.txt) と [LLVMランタイム](public/licenses/LLVM-RUNTIME-NOTICES.txt) の通知も補足しました。追加したのは文書のみで、ライブラリやWASMは変更していません。
 
-llama.cppの上流ソースには個別ライセンスの部品もあります。同じ固定コミットで、[nlohmann/json（MIT）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/nlohmann/json.hpp)、[stb_image（MITまたはPublic Domain）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/stb/stb_image.h)、[miniaudio（MIT-0またはPublic Domain）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/miniaudio/miniaudio.h)、[subprocess.h（Unlicense）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/sheredom/subprocess.h)、[xxHash（BSD-2-Clause）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/hash/xxhash/LICENSE)、[SHA-1](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/hash/sha1/sha1.h)・[SHA-256（Public Domain）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/hash/sha256/LICENSE)の表記を確認しました。これは上流ソースの確認であり、配布済みWASMの最終リンク内容やEmscripten等の実行時部品を含む、全構成物・全通知の網羅監査は未実施です。
+llama.cppの上流ソースには個別ライセンスの部品もあります。同じ固定コミットで、[nlohmann/json（MIT）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/nlohmann/json.hpp)、[stb_image（MITまたはPublic Domain）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/stb/stb_image.h)、[miniaudio（MIT-0またはPublic Domain）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/miniaudio/miniaudio.h)、[subprocess.h（Unlicense）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/sheredom/subprocess.h)、[xxHash（BSD-2-Clause）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/hash/xxhash/LICENSE)、[SHA-1](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/hash/sha1/sha1.h)・[SHA-256（Public Domain）](https://github.com/ggml-org/llama.cpp/blob/83d855c5a6d70487121edbf4020b25c96b7a04e7/vendor/hash/sha256/LICENSE)の表記を確認しました。追加調査では、上流ビルドが指定するEmdawnwebgpuの配布ZIP、LLVMランタイムのライセンス、npm付属のシンボル表も確認しました。確認した範囲では独自部分のMIT採用を妨げる条件は見つかっていません。配布済みWASMの全オブジェクトの来歴を証明したものではありません。判断の根拠と残る限界は [MIT採用に関する調査](docs/license-review.md) を参照してください。
 
 ### 開発・ビルド・テスト用の依存
 
@@ -99,6 +101,10 @@ LFM2.5-VLはApache-2.0ではありません。LFM Open License v1.0には、年�
 確認したGGUF配布リポジトリのリビジョンは、Qwen3: `50968a4468ef4233ed78cd7c3de230dd1d61a56b`、Qwen2.5: `9217f5db79a29953eb74d5343926648285ec7e67`、SmolLM2: `476854d00ede130660aba430d15f9347ad2e7d0e`、LFM2.5-VL: `6f730e9a2c454e8af9adc29db58e638e01e5957f` です。これは権利表記の調査時点の記録です。アプリの通常の取得URLは `main` を参照するため、過去の検証ファイルや将来のダウンロードと同一リビジョンであることを保証するものではありません。
 
 同梱しない場合でも、モデルを利用する際はそのモデルの条件が適用されます。別のモデル・量子化・画像用ファイルを選ぶ際は、配布元と元モデル双方のモデルカード・LICENSEを確認してください。GGUF化によって元モデルの条件がなくなるわけではありません。JevWexのライセンスや、この表の条件が任意のダウンロード先すべてに適用されるわけではありません。
+
+## 開発について
+
+本プロジェクトの実装・テスト・ドキュメント作成には、OpenAI Codexを使用しています。
 
 ## ドキュメント
 

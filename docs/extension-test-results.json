@@ -1,0 +1,134 @@
+{
+  "date": "2026-09-28T07:10:22.120Z",
+  "browser": "145.0.7632.6",
+  "passed": [
+    "production MV3 loads under real CSP",
+    "sample and form/JSON round trip",
+    "duplicate input key rejected in UI",
+    "offline local GGUF / Worker / WASM load",
+    "real choice schema + postprocessing",
+    "real noul schema + postprocessing",
+    "real score schema + postprocessing",
+    "real mixed sequential evaluation",
+    "repeated evaluation retains model generation",
+    "state instructions cannot add accepted output keys",
+    "real inference cancellation acknowledged",
+    "real rerun after cancel",
+    "input/result/diagnostics clipboard writes",
+    "input remains editable; stale async result discarded",
+    "release, reload and rerun",
+    "reload does not falsely retain local files or model",
+    "second distinct GGUF selection and runtime switch",
+    "no external HTTP(S) requests, including inference data",
+    "no browser console/page errors",
+    "no page access permissions or content scripts"
+  ],
+  "notRun": [
+    "split GGUF model; semantic accuracy benchmark; real-model output token limit"
+  ],
+  "requests": [
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/3cabc2fa-64ba-41bd-a9ff-af8935e1fcd3",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/c9c9375f-1099-4abc-b30f-d7e196da536f",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/7adc6c11-1679-4a66-bff7-e4175b5b2665",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/49d3e08d-5927-42a3-a9f1-b23e492a08f8",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm"
+  ],
+  "consoleErrors": [],
+  "results": [
+    {
+      "case": "animal",
+      "result": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "answers": {
+          "animal": {
+            "type": "choice",
+            "choice": "animal",
+            "probabilities": {
+              "animal": 0.9,
+              "vehicle": 0.1
+            },
+            "confidence": 0.8
+          }
+        }
+      }
+    },
+    {
+      "case": "cat",
+      "result": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "answers": {
+          "cat": {
+            "type": "noul",
+            "noul": 0.9999999999999999
+          }
+        }
+      }
+    },
+    {
+      "case": "detail",
+      "result": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "answers": {
+          "detail": {
+            "type": "score",
+            "score": 0.1,
+            "probabilities": {
+              "0": 0.9,
+              "1": 0.1
+            },
+            "confidence": 0.8,
+            "legend": {
+              "0": "Only names an animal.",
+              "1": "Describes an animal and what it does."
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "mixed",
+      "result": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "answers": {
+          "animal": {
+            "type": "choice",
+            "choice": "animal",
+            "probabilities": {
+              "animal": 0.9,
+              "vehicle": 0.1
+            },
+            "confidence": 0.8
+          },
+          "cat": {
+            "type": "noul",
+            "noul": 0.9999999999999999
+          },
+          "detail": {
+            "type": "score",
+            "score": 0.1,
+            "probabilities": {
+              "0": 0.9,
+              "1": 0.1
+            },
+            "confidence": 0.8,
+            "legend": {
+              "0": "Only names an animal.",
+              "1": "Describes an animal and what it does."
+            }
+          }
+        }
+      }
+    }
+  ],
+  "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+  "loaded": "使用モデル：local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586 / CPU・WASM / 1 thread / context 4096 / 読込 2.32 秒 / 世代 2"
+}

@@ -1,0 +1,1511 @@
+{
+  "browser": "145.0.7632.6",
+  "passed": [
+    "Separate batch page imports quoted multiline CSV, infers columns, keeps duplicate names and independent shared criteria",
+    "Real mixed-type text batch isolates empty row, computes verified aggregates, shows per-row detail and exports CSV/JSON",
+    "Cancellation preserves completed rows; resume reuses original criteria and avoids reevaluating successes",
+    "Mobile layout confines wide result tables to horizontal table scrolling",
+    "55 real text evaluations finish; individual results paginate 50 + 5 without omissions",
+    "Ten-image batch with real LFM2.5-VL: nine valid images evaluated individually, corrupt image isolated; eleven images rejected",
+    "No page errors or external HTTP requests during batch processing"
+  ],
+  "notRun": [
+    "10,000 real LLM evaluations; long overnight execution; low-memory devices"
+  ],
+  "text": {
+    "startedAt": "2026-09-28T09:52:38.012Z",
+    "model": {
+      "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+      "generation": 4,
+      "load_ms": 1852.714999999851,
+      "threads": 8,
+      "context": 4096,
+      "supports_images": false,
+      "hardware": {
+        "requested": {
+          "device": "webgpu",
+          "threads": 8,
+          "gpuLayers": 99999,
+          "context": 4096
+        },
+        "gpu_layers_offloaded": 25
+      }
+    },
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Choose the dominant color mentioned in the text or shown in the image.",
+        "criteria": {
+          "red": "The color is red.",
+          "blue": "The color is blue.",
+          "other": "The color is other."
+        }
+      },
+      "requests_refund": {
+        "type": "noul",
+        "instructions": "The dominant color is red."
+      },
+      "request_specificity": {
+        "type": "score",
+        "instructions": "Rate how red the color is, blue=0 purple=1 red=2.",
+        "criteria": [
+          {
+            "label": "blue",
+            "description": "The color is blue."
+          },
+          {
+            "label": "purple",
+            "description": "The color is purple."
+          },
+          {
+            "label": "red",
+            "description": "The color is red."
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "number": 1,
+        "name": "同名",
+        "text": "The color is red.\nIt is bright.",
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "red",
+                "probabilities": {
+                  "red": 1,
+                  "blue": 0,
+                  "other": 0
+                },
+                "confidence": 1
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 0.95
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The color is blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The color is purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The color is red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+            "generation": 4,
+            "load_ms": 1852.714999999851,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": false,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 25
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 1674.8650000002235,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\n  \"p0\": 1,\n  \"p1\": 0,\n  \"p2\": 0\n}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\":0.95}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\n  \"p0\": 0,\n  \"p1\": 0,\n  \"p2\": 1\n}"
+              }
+            ],
+            "images": [],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 2,
+        "name": "同名",
+        "text": "The color is blue.",
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "blue",
+                "probabilities": {
+                  "red": 0,
+                  "blue": 1,
+                  "other": 0
+                },
+                "confidence": 1
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 0.9
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The color is blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The color is purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The color is red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+            "generation": 4,
+            "load_ms": 1852.714999999851,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": false,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 25
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 1607.5050000008196,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\n  \"p0\": 0,\n  \"p1\": 1,\n  \"p2\": 0\n}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\":0.9}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0.0,\"p1\":0.0,\"p2\":1.0}"
+              }
+            ],
+            "images": [],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 3,
+        "name": "空の文章",
+        "text": "",
+        "status": "error",
+        "error": {
+          "code": "INVALID_REQUEST",
+          "message": "判定する内容が空です。取り込んだ列を確認してください。"
+        }
+      },
+      {
+        "number": 4,
+        "name": "最後",
+        "text": "The color is red.\nIt is bright.",
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "red",
+                "probabilities": {
+                  "red": 1,
+                  "blue": 0,
+                  "other": 0
+                },
+                "confidence": 1
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 0.95
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The color is blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The color is purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The color is red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+            "generation": 4,
+            "load_ms": 1852.714999999851,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": false,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 25
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 1700.0649999994785,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\n  \"p0\": 1,\n  \"p1\": 0,\n  \"p2\": 0\n}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\":0.95}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\n  \"p0\": 0,\n  \"p1\": 0,\n  \"p2\": 1\n}"
+              }
+            ],
+            "images": [],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      }
+    ],
+    "finishedAt": "2026-09-28T09:52:43.002Z",
+    "presentation": {
+      "department": {
+        "alias": "色の分類",
+        "labels": [
+          "red",
+          "blue",
+          "other"
+        ]
+      },
+      "requests_refund": {
+        "alias": "赤の当てはまり",
+        "labels": []
+      },
+      "request_specificity": {
+        "alias": "赤の程度",
+        "labels": [
+          "blue",
+          "purple",
+          "red"
+        ]
+      }
+    },
+    "summary": {
+      "totals": {
+        "total": 4,
+        "success": 3,
+        "error": 1,
+        "cancelled": 0,
+        "pending": 0,
+        "running": 0
+      },
+      "criteria": {
+        "department": {
+          "type": "choice",
+          "count": 3,
+          "mean": null,
+          "min": null,
+          "max": null,
+          "counts": {
+            "red": 2,
+            "blue": 1,
+            "other": 0
+          },
+          "meanWeights": {
+            "red": 0.6666666666666666,
+            "blue": 0.3333333333333333,
+            "other": 0
+          },
+          "atLeastHalf": 0
+        },
+        "requests_refund": {
+          "type": "noul",
+          "count": 3,
+          "mean": 0.9333333333333332,
+          "min": 0.9,
+          "max": 0.95,
+          "counts": {},
+          "meanWeights": {},
+          "atLeastHalf": 3
+        },
+        "request_specificity": {
+          "type": "score",
+          "count": 3,
+          "mean": 2,
+          "min": 2,
+          "max": 2,
+          "counts": {
+            "0": 0,
+            "1": 0,
+            "2": 0
+          },
+          "meanWeights": {
+            "0": 0,
+            "1": 0,
+            "2": 1
+          },
+          "atLeastHalf": 0
+        }
+      }
+    }
+  },
+  "cancelled": {
+    "total": 6,
+    "success": 1,
+    "error": 0,
+    "cancelled": 1,
+    "pending": 4,
+    "running": 0
+  },
+  "resumed": {
+    "total": 6,
+    "success": 6,
+    "error": 0,
+    "cancelled": 0,
+    "pending": 0,
+    "running": 0
+  },
+  "many": {
+    "totals": {
+      "total": 55,
+      "success": 55,
+      "error": 0,
+      "cancelled": 0,
+      "pending": 0,
+      "running": 0
+    },
+    "criteria": {
+      "department": {
+        "type": "noul",
+        "count": 55,
+        "mean": 0.8999999999999991,
+        "min": 0.9,
+        "max": 0.9,
+        "counts": {},
+        "meanWeights": {},
+        "atLeastHalf": 55
+      }
+    }
+  },
+  "images": {
+    "startedAt": "2026-09-28T09:53:11.744Z",
+    "model": {
+      "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+      "generation": 6,
+      "load_ms": 5210.125,
+      "threads": 8,
+      "context": 4096,
+      "supports_images": true,
+      "hardware": {
+        "requested": {
+          "device": "webgpu",
+          "threads": 8,
+          "gpuLayers": 99999,
+          "context": 4096
+        },
+        "gpu_layers_offloaded": 31
+      }
+    },
+    "questions": {
+      "department": {
+        "type": "choice",
+        "instructions": "Choose the dominant color of the attached image.",
+        "criteria": {
+          "red": "The color is red.",
+          "blue": "The color is blue.",
+          "other": "The color is other."
+        }
+      },
+      "requests_refund": {
+        "type": "noul",
+        "instructions": "The attached image is predominantly red."
+      },
+      "request_specificity": {
+        "type": "score",
+        "instructions": "Rate how red the attached image is. Blue is level zero; red is level two.",
+        "criteria": [
+          {
+            "label": "blue",
+            "description": "The image is predominantly blue."
+          },
+          {
+            "label": "purple",
+            "description": "The image is predominantly purple."
+          },
+          {
+            "label": "red",
+            "description": "The image is predominantly red."
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "number": 1,
+        "name": "image-0.png",
+        "text": "",
+        "image": {
+          "name": "image-0.png",
+          "type": "image/png",
+          "size": 866
+        },
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "red",
+                "probabilities": {
+                  "red": 1,
+                  "blue": 0,
+                  "other": 0
+                },
+                "confidence": 1
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 1
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "generation": 6,
+            "load_ms": 5210.125,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": true,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 31
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 2968.2099999990314,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\"p0\":1,\"p1\":0,\"p2\":0}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\": 1}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+              }
+            ],
+            "images": [
+              {
+                "name": "image-0.png",
+                "type": "image/png",
+                "size": 866,
+                "width": 128,
+                "height": 128
+              }
+            ],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 2,
+        "name": "image-1.png",
+        "text": "",
+        "image": {
+          "name": "image-1.png",
+          "type": "image/png",
+          "size": 876
+        },
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "blue",
+                "probabilities": {
+                  "red": 0.1,
+                  "blue": 0.9,
+                  "other": 0
+                },
+                "confidence": 0.8499999999999999
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 0
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "generation": 6,
+            "load_ms": 5210.125,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": true,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 31
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 3322.9550000000745,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\"p0\":0.1,\"p1\":0.9,\"p2\":0.0}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\": 0.0}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+              }
+            ],
+            "images": [
+              {
+                "name": "image-1.png",
+                "type": "image/png",
+                "size": 876,
+                "width": 128,
+                "height": 128
+              }
+            ],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 3,
+        "name": "image-2.png",
+        "text": "",
+        "image": {
+          "name": "image-2.png",
+          "type": "image/png",
+          "size": 866
+        },
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "red",
+                "probabilities": {
+                  "red": 1,
+                  "blue": 0,
+                  "other": 0
+                },
+                "confidence": 1
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 1
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "generation": 6,
+            "load_ms": 5210.125,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": true,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 31
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 3122.629999998957,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\"p0\":1,\"p1\":0,\"p2\":0}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\": 1}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+              }
+            ],
+            "images": [
+              {
+                "name": "image-2.png",
+                "type": "image/png",
+                "size": 866,
+                "width": 128,
+                "height": 128
+              }
+            ],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 4,
+        "name": "image-3.png",
+        "text": "",
+        "image": {
+          "name": "image-3.png",
+          "type": "image/png",
+          "size": 876
+        },
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "blue",
+                "probabilities": {
+                  "red": 0.1,
+                  "blue": 0.9,
+                  "other": 0
+                },
+                "confidence": 0.8499999999999999
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 0
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "generation": 6,
+            "load_ms": 5210.125,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": true,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 31
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 3208.109999999404,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\"p0\":0.1,\"p1\":0.9,\"p2\":0.0}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\": 0.0}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+              }
+            ],
+            "images": [
+              {
+                "name": "image-3.png",
+                "type": "image/png",
+                "size": 876,
+                "width": 128,
+                "height": 128
+              }
+            ],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 5,
+        "name": "image-4.png",
+        "text": "",
+        "image": {
+          "name": "image-4.png",
+          "type": "image/png",
+          "size": 866
+        },
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "red",
+                "probabilities": {
+                  "red": 1,
+                  "blue": 0,
+                  "other": 0
+                },
+                "confidence": 1
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 1
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "generation": 6,
+            "load_ms": 5210.125,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": true,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 31
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 2930.2249999996275,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\"p0\":1,\"p1\":0,\"p2\":0}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\": 1}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+              }
+            ],
+            "images": [
+              {
+                "name": "image-4.png",
+                "type": "image/png",
+                "size": 866,
+                "width": 128,
+                "height": 128
+              }
+            ],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 6,
+        "name": "image-5.png",
+        "text": "",
+        "image": {
+          "name": "image-5.png",
+          "type": "image/png",
+          "size": 876
+        },
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "blue",
+                "probabilities": {
+                  "red": 0.1,
+                  "blue": 0.9,
+                  "other": 0
+                },
+                "confidence": 0.8499999999999999
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 0
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "generation": 6,
+            "load_ms": 5210.125,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": true,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 31
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 3190.394999999553,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\"p0\":0.1,\"p1\":0.9,\"p2\":0.0}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\": 0.0}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+              }
+            ],
+            "images": [
+              {
+                "name": "image-5.png",
+                "type": "image/png",
+                "size": 876,
+                "width": 128,
+                "height": 128
+              }
+            ],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 7,
+        "name": "image-6.png",
+        "text": "",
+        "image": {
+          "name": "image-6.png",
+          "type": "image/png",
+          "size": 866
+        },
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "red",
+                "probabilities": {
+                  "red": 1,
+                  "blue": 0,
+                  "other": 0
+                },
+                "confidence": 1
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 1
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "generation": 6,
+            "load_ms": 5210.125,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": true,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 31
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 2991.9049999993294,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\"p0\":1,\"p1\":0,\"p2\":0}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\": 1}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+              }
+            ],
+            "images": [
+              {
+                "name": "image-6.png",
+                "type": "image/png",
+                "size": 866,
+                "width": 128,
+                "height": 128
+              }
+            ],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 8,
+        "name": "image-7.png",
+        "text": "",
+        "image": {
+          "name": "image-7.png",
+          "type": "image/png",
+          "size": 876
+        },
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "blue",
+                "probabilities": {
+                  "red": 0.1,
+                  "blue": 0.9,
+                  "other": 0
+                },
+                "confidence": 0.8499999999999999
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 0
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "generation": 6,
+            "load_ms": 5210.125,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": true,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 31
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 3182.785000000149,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\"p0\":0.1,\"p1\":0.9,\"p2\":0.0}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\": 0.0}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+              }
+            ],
+            "images": [
+              {
+                "name": "image-7.png",
+                "type": "image/png",
+                "size": 876,
+                "width": 128,
+                "height": 128
+              }
+            ],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 9,
+        "name": "image-8.png",
+        "text": "",
+        "image": {
+          "name": "image-8.png",
+          "type": "image/png",
+          "size": 866
+        },
+        "status": "success",
+        "result": {
+          "response": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "answers": {
+              "department": {
+                "type": "choice",
+                "choice": "red",
+                "probabilities": {
+                  "red": 1,
+                  "blue": 0,
+                  "other": 0
+                },
+                "confidence": 1
+              },
+              "requests_refund": {
+                "type": "noul",
+                "noul": 1
+              },
+              "request_specificity": {
+                "type": "score",
+                "score": 2,
+                "probabilities": {
+                  "0": 0,
+                  "1": 0,
+                  "2": 1
+                },
+                "confidence": 1,
+                "legend": {
+                  "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+                  "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+                  "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+                }
+              }
+            }
+          },
+          "diagnostics": {
+            "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+            "generation": 6,
+            "load_ms": 5210.125,
+            "threads": 8,
+            "context": 4096,
+            "supports_images": true,
+            "hardware": {
+              "requested": {
+                "device": "webgpu",
+                "threads": 8,
+                "gpuLayers": 99999,
+                "context": 4096
+              },
+              "gpu_layers_offloaded": 31
+            },
+            "runtime": "wllama extension page",
+            "wllama_version": "3.6.1",
+            "evaluation_ms": 2968.5400000009686,
+            "question_count": 3,
+            "llm_calls": 3,
+            "format_validated": true,
+            "confidence_method": "typesafe_adapter_e1d4cc9",
+            "normalizations": [],
+            "model_outputs": [
+              {
+                "question": "department",
+                "raw_output": "{\"p0\":1,\"p1\":0,\"p2\":0}"
+              },
+              {
+                "question": "requests_refund",
+                "raw_output": "{\"noul\": 1}"
+              },
+              {
+                "question": "request_specificity",
+                "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+              }
+            ],
+            "images": [
+              {
+                "name": "image-8.png",
+                "type": "image/png",
+                "size": 866,
+                "width": 128,
+                "height": 128
+              }
+            ],
+            "warnings": [
+              "確率はローカルLLMが生成した未校正の推定です。",
+              "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+              "質問を直列に実行し、履歴を共有しません。"
+            ]
+          }
+        }
+      },
+      {
+        "number": 10,
+        "name": "broken.png",
+        "text": "",
+        "image": {
+          "name": "broken.png",
+          "type": "image/png",
+          "size": 6
+        },
+        "status": "error",
+        "error": {
+          "code": "INVALID_REQUEST",
+          "message": "画像「broken.png」を読み取れませんでした。"
+        }
+      }
+    ],
+    "finishedAt": "2026-09-28T09:53:39.670Z",
+    "presentation": {
+      "department": {
+        "alias": "色の分類",
+        "labels": [
+          "red",
+          "blue",
+          "other"
+        ]
+      },
+      "requests_refund": {
+        "alias": "赤の当てはまり",
+        "labels": []
+      },
+      "request_specificity": {
+        "alias": "赤の程度",
+        "labels": [
+          "blue",
+          "purple",
+          "red"
+        ]
+      }
+    },
+    "summary": {
+      "totals": {
+        "total": 10,
+        "success": 9,
+        "error": 1,
+        "cancelled": 0,
+        "pending": 0,
+        "running": 0
+      },
+      "criteria": {
+        "department": {
+          "type": "choice",
+          "count": 9,
+          "mean": null,
+          "min": null,
+          "max": null,
+          "counts": {
+            "red": 5,
+            "blue": 4,
+            "other": 0
+          },
+          "meanWeights": {
+            "red": 0.6000000000000001,
+            "blue": 0.4,
+            "other": 0
+          },
+          "atLeastHalf": 0
+        },
+        "requests_refund": {
+          "type": "noul",
+          "count": 9,
+          "mean": 0.5555555555555556,
+          "min": 0,
+          "max": 1,
+          "counts": {},
+          "meanWeights": {},
+          "atLeastHalf": 5
+        },
+        "request_specificity": {
+          "type": "score",
+          "count": 9,
+          "mean": 2,
+          "min": 2,
+          "max": 2,
+          "counts": {
+            "0": 0,
+            "1": 0,
+            "2": 0
+          },
+          "meanWeights": {
+            "0": 0,
+            "1": 0,
+            "2": 1
+          },
+          "atLeastHalf": 0
+        }
+      }
+    }
+  }
+}

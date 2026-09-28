@@ -1,0 +1,141 @@
+{
+  "browser": "145.0.7632.6",
+  "passed": [
+    "Successful load records model; merely selecting another model does not replace it",
+    "Browser restart restores cached model and CPU settings offline; judge is ready and real inference succeeds",
+    "WebGPU settings restore on reopening and real GPU inference succeeds offline",
+    "Failed model load preserves the last successful model",
+    "Missing cache shows recovery guidance without downloading or loading a different model",
+    "Local-file model name is remembered with a clear reselection message",
+    "Unavailable hardware setting stops auto-load; correcting settings permits manual recovery"
+  ],
+  "notRun": [
+    "Low-memory startup failure; other browser versions; real GPU loss between launches"
+  ],
+  "result": {
+    "response": {
+      "model": "cache:https://huggingface.co/QuantFactory/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct.Q4_K_M.gguf",
+      "answers": {
+        "department": {
+          "type": "noul",
+          "noul": 1
+        }
+      }
+    },
+    "diagnostics": {
+      "model": "cache:https://huggingface.co/QuantFactory/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct.Q4_K_M.gguf",
+      "generation": 2,
+      "load_ms": 746.5249999985099,
+      "threads": 2,
+      "context": 2048,
+      "supports_images": false,
+      "hardware": {
+        "requested": {
+          "device": "cpu",
+          "threads": 2,
+          "gpuLayers": 0,
+          "context": 2048
+        },
+        "gpu_layers_offloaded": 0
+      },
+      "runtime": "wllama extension page",
+      "wllama_version": "3.6.1",
+      "evaluation_ms": 4446.4900000002235,
+      "question_count": 1,
+      "llm_calls": 1,
+      "format_validated": true,
+      "confidence_method": "typesafe_adapter_e1d4cc9",
+      "normalizations": [],
+      "model_outputs": [
+        {
+          "question": "department",
+          "raw_output": "{\"noul\":1}"
+        }
+      ],
+      "images": [],
+      "warnings": [
+        "確率はローカルLLMが生成した未校正の推定です。",
+        "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+        "質問を直列に実行し、履歴を共有しません。"
+      ]
+    },
+    "input": {
+      "state": "The cat sleeps.",
+      "questions": {
+        "department": {
+          "type": "noul",
+          "instructions": "The text mentions a cat."
+        }
+      }
+    },
+    "presentation": {
+      "department": {
+        "alias": "確認する項目",
+        "labels": []
+      }
+    }
+  },
+  "gpuResult": {
+    "response": {
+      "model": "cache:https://huggingface.co/QuantFactory/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct.Q4_K_M.gguf",
+      "answers": {
+        "department": {
+          "type": "noul",
+          "noul": 1
+        }
+      }
+    },
+    "diagnostics": {
+      "model": "cache:https://huggingface.co/QuantFactory/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct.Q4_K_M.gguf",
+      "generation": 2,
+      "load_ms": 748.3450000006706,
+      "threads": 2,
+      "context": 2048,
+      "supports_images": false,
+      "hardware": {
+        "requested": {
+          "device": "webgpu",
+          "threads": 2,
+          "gpuLayers": 99999,
+          "context": 2048
+        },
+        "gpu_layers_offloaded": 31
+      },
+      "runtime": "wllama extension page",
+      "wllama_version": "3.6.1",
+      "evaluation_ms": 416.00500000081956,
+      "question_count": 1,
+      "llm_calls": 1,
+      "format_validated": true,
+      "confidence_method": "typesafe_adapter_e1d4cc9",
+      "normalizations": [],
+      "model_outputs": [
+        {
+          "question": "department",
+          "raw_output": "{\"noul\":1}"
+        }
+      ],
+      "images": [],
+      "warnings": [
+        "確率はローカルLLMが生成した未校正の推定です。",
+        "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+        "質問を直列に実行し、履歴を共有しません。"
+      ]
+    },
+    "input": {
+      "state": "The cat sleeps.",
+      "questions": {
+        "department": {
+          "type": "noul",
+          "instructions": "The text mentions a cat."
+        }
+      }
+    },
+    "presentation": {
+      "department": {
+        "alias": "確認する項目",
+        "labels": []
+      }
+    }
+  }
+}

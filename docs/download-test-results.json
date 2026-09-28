@@ -1,0 +1,109 @@
+{
+  "browser": "145.0.7632.6",
+  "passed": [
+    "unapproved origin rejected before network",
+    "real download cancel never registers partial model",
+    "real HTTPS download and OPFS cache completed",
+    "downloaded model survives reload while offline",
+    "duplicate download reuses cache without network",
+    "cached model loads with packaged Worker/WASM offline",
+    "real cached-model inference sends no network requests",
+    "actual redirect hosts match limited permissions"
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html"
+    },
+    {
+      "method": "GET",
+      "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css"
+    },
+    {
+      "method": "GET",
+      "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js"
+    },
+    {
+      "method": "HEAD",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+    },
+    {
+      "method": "HEAD",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/66e98ad5d89bf05ecbbdfe9e/0663b826e09042345d6e2069d9655cd3ae84812d8f39a5894bed7b24fc0e86cc"
+    },
+    {
+      "method": "GET",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/raw/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+    },
+    {
+      "method": "GET",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+    },
+    {
+      "method": "GET",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/66e98ad5d89bf05ecbbdfe9e/0663b826e09042345d6e2069d9655cd3ae84812d8f39a5894bed7b24fc0e86cc"
+    },
+    {
+      "method": "GET",
+      "url": "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/d0b30648-fce9-424e-94f9-2947b5d82495"
+    },
+    {
+      "method": "HEAD",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+    },
+    {
+      "method": "HEAD",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/66e98ad5d89bf05ecbbdfe9e/0663b826e09042345d6e2069d9655cd3ae84812d8f39a5894bed7b24fc0e86cc"
+    },
+    {
+      "method": "GET",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/raw/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+    },
+    {
+      "method": "GET",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+    },
+    {
+      "method": "GET",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/66e98ad5d89bf05ecbbdfe9e/0663b826e09042345d6e2069d9655cd3ae84812d8f39a5894bed7b24fc0e86cc"
+    },
+    {
+      "method": "GET",
+      "url": "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/6916033f-77a0-4460-ba57-4fdecf6ccc7c"
+    },
+    {
+      "method": "GET",
+      "url": "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/62057737-8df5-4bdd-89fd-aeaca8b30efe"
+    },
+    {
+      "method": "GET",
+      "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html"
+    },
+    {
+      "method": "GET",
+      "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css"
+    },
+    {
+      "method": "GET",
+      "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js"
+    },
+    {
+      "method": "GET",
+      "url": "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/c43ea73d-f9b8-455c-ad6a-333095974c30"
+    },
+    {
+      "method": "GET",
+      "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm"
+    }
+  ],
+  "model": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf",
+  "result": {
+    "model": "cache:https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf",
+    "answers": {
+      "cat": {
+        "type": "noul",
+        "noul": 0.8
+      }
+    }
+  }
+}

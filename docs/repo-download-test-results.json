@@ -1,0 +1,35 @@
+{
+  "browser": "145.0.7632.6",
+  "input": "unsloth/Qwen3-0.6B-GGUF",
+  "passed": [
+    "short repo input resolves real public Q4_K_M and shows target",
+    "actual repository model downloaded into cache",
+    "same repo resolves its cached Q4_K_M offline after reload",
+    "downloaded Qwen3 loads offline with metadata chat template",
+    "no additional distribution hosts or permissions needed"
+  ],
+  "requests": [
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "https://huggingface.co/api/models/unsloth/Qwen3-0.6B-GGUF/tree/main",
+    "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+    "https://us.aws.cdn.hf.co/xet-bridge-us/680f574d990259644b674a6d/f126f3c667c5cca075be77eaf2fc99e057a10741a138ab62348955628f03c09e",
+    "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/raw/main/Qwen3-0.6B-Q4_K_M.gguf",
+    "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+    "https://us.aws.cdn.hf.co/xet-bridge-us/680f574d990259644b674a6d/f126f3c667c5cca075be77eaf2fc99e057a10741a138ab62348955628f03c09e",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/8fbae655-62fa-4962-b828-7b32d7b8e5d2",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/cea4003e-eedc-4dd8-b40b-68f97e1c5600",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/851a05e3-6dc1-48d9-a3a9-0b838d1f36e5",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm"
+  ],
+  "notRun": [
+    "Qwen3 real inference/accuracy (this test covers download and load)"
+  ],
+  "resolved": "取得ファイル：Qwen3-0.6B-Q4_K_M.gguf\nhttps://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+  "selected": "cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+  "loaded": "使用モデル：cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf / CPU・WASM / 1 thread / context 4096 / 読込 2.28 秒 / 世代 2"
+}

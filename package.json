@@ -1,0 +1,32 @@
+{
+  "name": "jevwex",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/jev/*.test.ts",
+    "build": "node scripts/build.mjs",
+    "test:extension": "node tests/extension/smoke.mjs",
+    "test:extension:errors": "node tests/extension/error-recovery.mjs",
+    "test:extension:download": "node tests/extension/download.mjs",
+    "test:extension:repo": "node tests/extension/repo-download.mjs",
+    "test:extension:hardware": "node tests/extension/hardware.mjs",
+    "test:extension:vision": "node tests/extension/vision.mjs",
+    "test:extension:resume": "node tests/extension/resume.mjs",
+    "test:extension:batch": "node tests/extension/batch.mjs",
+    "test:extension:readout": "node tests/extension/direct-readout.mjs"
+  },
+  "dependencies": {
+    "@wllama/wllama": "3.6.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.1.24",
+    "@types/node": "22.19.15",
+    "esbuild": "0.25.12",
+    "playwright": "1.58.2",
+    "prettier": "3.6.2",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

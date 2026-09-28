@@ -1,0 +1,181 @@
+{
+  "browser": "145.0.7632.6",
+  "input": "unsloth/Qwen3-0.6B-GGUF",
+  "passed": [
+    "short repo input resolves real public Q4_K_M and shows target",
+    "actual repository model downloaded into cache",
+    "same repo resolves its cached Q4_K_M offline after reload",
+    "downloaded Qwen3 loads offline with metadata chat template",
+    "Qwen3 WebGPU mixed choice/noul/score inference and result download offline",
+    "no additional distribution hosts or permissions needed"
+  ],
+  "requests": [
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "https://huggingface.co/api/models/unsloth/Qwen3-0.6B-GGUF/tree/main",
+    "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+    "https://us.aws.cdn.hf.co/xet-bridge-us/680f574d990259644b674a6d/f126f3c667c5cca075be77eaf2fc99e057a10741a138ab62348955628f03c09e",
+    "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/raw/main/Qwen3-0.6B-Q4_K_M.gguf",
+    "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+    "https://us.aws.cdn.hf.co/xet-bridge-us/680f574d990259644b674a6d/f126f3c667c5cca075be77eaf2fc99e057a10741a138ab62348955628f03c09e",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/b5093920-04d1-4a4b-962e-37eda8928a70",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/1c863b7d-39d9-4b31-91fa-6d7b0e0d2f0a",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/12032750-c62b-40cc-878a-55b6ff9ccaa2",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/a725d0b0-db0d-4fe5-bf0b-ec76e5e56eaf",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/2103acc4-2ecd-4aee-88c6-aff85de332d6",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/afe45ab7-a752-4c4c-bf98-d64069c41704",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/6bb23f51-ed7d-4442-bf4d-62f55100af4b",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/a413fac0-c47f-4ae2-bafe-c6081525cddd",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/67b953b2-cfd9-40f1-ac1e-ada3aedc15b5",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/ebe58ade-57d7-473a-9a53-a6b37560a150",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/5babf865-9d8d-4337-ae4f-c2661c1a9b54",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm"
+  ],
+  "notRun": [
+    "semantic accuracy benchmark; low-VRAM GPU fallback; other GPU vendors"
+  ],
+  "resolved": "取得ファイル：Qwen3-0.6B-Q4_K_M.gguf",
+  "selected": "cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+  "loaded": "準備完了：Qwen3-0.6B-Q4_K_M.gguf",
+  "result": {
+    "response": {
+      "model": "cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+      "answers": {
+        "department": {
+          "type": "choice",
+          "choice": "請求・返金",
+          "probabilities": {
+            "請求・返金": 1,
+            "配送": 0,
+            "その他": 0
+          },
+          "confidence": 1
+        },
+        "requests_refund": {
+          "type": "noul",
+          "noul": 1
+        },
+        "request_specificity": {
+          "type": "score",
+          "score": 2,
+          "probabilities": {
+            "0": 0,
+            "1": 0,
+            "2": 1
+          },
+          "confidence": 1,
+          "legend": {
+            "0": "{\"label\":\"段階0\",\"description\":\"困りごとは書かれているが、求める対応は不明\"}",
+            "1": "{\"label\":\"段階1\",\"description\":\"対応の方向性は分かるが、具体的な行為は不明\"}",
+            "2": "{\"label\":\"段階2\",\"description\":\"求める具体的な行為が明示されている\"}"
+          }
+        }
+      }
+    },
+    "diagnostics": {
+      "model": "cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+      "generation": 2,
+      "load_ms": 2368.1500000003725,
+      "threads": 8,
+      "context": 4096,
+      "hardware": {
+        "requested": {
+          "device": "webgpu",
+          "threads": 8,
+          "gpuLayers": 99999,
+          "context": 4096
+        },
+        "gpu_layers_offloaded": 29
+      },
+      "runtime": "wllama extension page",
+      "wllama_version": "3.6.1",
+      "evaluation_ms": 18111.93999999948,
+      "question_count": 3,
+      "llm_calls": 3,
+      "format_validated": true,
+      "confidence_method": "typesafe_adapter_e1d4cc9",
+      "normalizations": [],
+      "model_outputs": [
+        {
+          "question": "department",
+          "raw_output": "{\"p0\": 1, \"p1\": 0, \"p2\": 0}"
+        },
+        {
+          "question": "requests_refund",
+          "raw_output": "{\"noul\": 1.0}"
+        },
+        {
+          "question": "request_specificity",
+          "raw_output": "{\n  \"p0\": 0.0,\n  \"p1\": 0.0,\n  \"p2\": 1.0\n}"
+        }
+      ],
+      "warnings": [
+        "確率はローカルLLMが生成した未校正の推定です。",
+        "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+        "質問を直列に実行し、履歴を共有しません。"
+      ]
+    },
+    "input": {
+      "state": "同じ注文の代金が二度請求されています。返金をお願いします。\n注文状況：配達済み",
+      "questions": {
+        "department": {
+          "type": "choice",
+          "instructions": "この問い合わせの主な担当窓口を選んでください。",
+          "criteria": {
+            "請求・返金": "請求、支払い、返金に関する問い合わせ",
+            "配送": "配送、未着、届け先に関する問い合わせ",
+            "その他": "いずれにも該当しない問い合わせ"
+          }
+        },
+        "requests_refund": {
+          "type": "noul",
+          "instructions": "利用者は返金を求めている。"
+        },
+        "request_specificity": {
+          "type": "score",
+          "instructions": "利用者が求める対応の具体性を評価してください。",
+          "criteria": [
+            {
+              "label": "段階0",
+              "description": "困りごとは書かれているが、求める対応は不明"
+            },
+            {
+              "label": "段階1",
+              "description": "対応の方向性は分かるが、具体的な行為は不明"
+            },
+            {
+              "label": "段階2",
+              "description": "求める具体的な行為が明示されている"
+            }
+          ]
+        }
+      }
+    },
+    "presentation": {
+      "department": {
+        "alias": "担当窓口",
+        "labels": [
+          "請求・返金",
+          "配送",
+          "その他"
+        ]
+      },
+      "requests_refund": {
+        "alias": "返金の希望",
+        "labels": []
+      },
+      "request_specificity": {
+        "alias": "対応の具体性",
+        "labels": [
+          "段階0",
+          "段階1",
+          "段階2"
+        ]
+      }
+    }
+  }
+}

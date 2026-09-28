@@ -1,0 +1,1547 @@
+{
+  "date": "2026-09-28",
+  "browser": "145.0.7632.6",
+  "wllama": "3.6.1",
+  "typecheck": "passed",
+  "unit_tests": {
+    "passed": 91,
+    "failed": 0
+  },
+  "build": "passed",
+  "wasm_sha256": "6ca9fdd1b6c03206cd3a04e359b52c8f539896d6c5fb5d36243dded4a689f0ad",
+  "readout": {
+    "browser": "145.0.7632.6",
+    "passed": [
+      "Qwen3 Q4_K_M CPU: original routing sample, choice/score/noul from finite token logprobs",
+      "32-choice readout includes every candidate",
+      "Qwen3 Q4_K_M GPU + 12 threads: routing sample",
+      "Qwen3 GPU: user-reported delivery-status text no longer generates numeric JSON",
+      "Switch model: SmolLM2 uses its own vocabulary and token probabilities",
+      "real MV3; offline inference; no page errors or added network access"
+    ],
+    "runs": [
+      {
+        "name": "Qwen3 Q4_K_M CPU: original routing sample, choice/score/noul from finite token logprobs",
+        "response": {
+          "model": "local:Qwen3-0.6B-Q4_K_M.gguf:396705472:1790590700676",
+          "answers": {
+            "department": {
+              "type": "choice",
+              "choice": "請求・返金",
+              "probabilities": {
+                "請求・返金": 0.9349718598310381,
+                "配送": 0.013630031475795872,
+                "その他": 0.05139810869316588
+              },
+              "confidence": 0.9024577897465572
+            },
+            "requests_refund": {
+              "type": "noul",
+              "noul": 0.9930308904877498
+            },
+            "request_specificity": {
+              "type": "score",
+              "score": 1.1388750121041307,
+              "probabilities": {
+                "0": 0.3675938017671702,
+                "1": 0.12593738436152868,
+                "2": 0.506468813871301
+              },
+              "confidence": 0,
+              "legend": {
+                "0": "{\"label\":\"段階0\",\"description\":\"困りごとは書かれているが、求める対応は不明\"}",
+                "1": "{\"label\":\"段階1\",\"description\":\"対応の方向性は分かるが、具体的な行為は不明\"}",
+                "2": "{\"label\":\"段階2\",\"description\":\"求める具体的な行為が明示されている\"}"
+              }
+            }
+          }
+        },
+        "diagnostics": {
+          "model": "local:Qwen3-0.6B-Q4_K_M.gguf:396705472:1790590700676",
+          "generation": 2,
+          "load_ms": 1981.5950000025332,
+          "threads": 8,
+          "context": 4096,
+          "supports_images": false,
+          "hardware": {
+            "requested": {
+              "device": "cpu",
+              "threads": 8,
+              "gpuLayers": 0,
+              "context": 4096
+            },
+            "gpu_layers_offloaded": 0
+          },
+          "runtime": "wllama extension page",
+          "wllama_version": "3.6.1",
+          "evaluation_ms": 8116.309999998659,
+          "question_count": 3,
+          "llm_calls": 3,
+          "format_validated": true,
+          "readout_method": "candidate_token_logprobs_v1",
+          "confidence_method": "typesafe_adapter_e1d4cc9",
+          "normalizations": [],
+          "model_outputs": [
+            {
+              "question": "department",
+              "raw_output": "A",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -0.06730660796165466,
+                  "probability": 0.9349718598310381
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -4.2955474853515625,
+                  "probability": 0.013630031475795872
+                },
+                {
+                  "label": "C",
+                  "token": 34,
+                  "logprob": -2.968221664428711,
+                  "probability": 0.05139810869316588
+                }
+              ]
+            },
+            {
+              "question": "requests_refund",
+              "raw_output": "A",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -0.007038570009171963,
+                  "probability": 0.9930308904877498
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -4.966312885284424,
+                  "probability": 0.006969109512250199
+                }
+              ]
+            },
+            {
+              "question": "request_specificity",
+              "raw_output": "C",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -1.0007994174957275,
+                  "probability": 0.3675938017671702
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -2.071993112564087,
+                  "probability": 0.12593738436152868
+                },
+                {
+                  "label": "C",
+                  "token": 34,
+                  "logprob": -0.6803151965141296,
+                  "probability": 0.506468813871301
+                }
+              ]
+            }
+          ],
+          "images": [],
+          "warnings": [
+            "確率は候補トークン間で正規化した値です。未校正であり、正答率ではありません。",
+            "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+            "質問を直列に実行し、履歴を共有しません。"
+          ]
+        },
+        "input": {
+          "state": "同じ注文の代金が二度請求されています。返金をお願いします。\n注文状況：配達済み",
+          "questions": {
+            "department": {
+              "type": "choice",
+              "instructions": "この問い合わせの主な担当窓口を選んでください。",
+              "criteria": {
+                "請求・返金": "請求、支払い、返金に関する問い合わせ",
+                "配送": "配送、未着、届け先に関する問い合わせ",
+                "その他": "いずれにも該当しない問い合わせ"
+              }
+            },
+            "requests_refund": {
+              "type": "noul",
+              "instructions": "利用者は返金を求めている。"
+            },
+            "request_specificity": {
+              "type": "score",
+              "instructions": "利用者が求める対応の具体性を評価してください。",
+              "criteria": [
+                {
+                  "label": "段階0",
+                  "description": "困りごとは書かれているが、求める対応は不明"
+                },
+                {
+                  "label": "段階1",
+                  "description": "対応の方向性は分かるが、具体的な行為は不明"
+                },
+                {
+                  "label": "段階2",
+                  "description": "求める具体的な行為が明示されている"
+                }
+              ]
+            }
+          }
+        },
+        "presentation": {
+          "department": {
+            "alias": "担当窓口",
+            "labels": [
+              "請求・返金",
+              "配送",
+              "その他"
+            ]
+          },
+          "requests_refund": {
+            "alias": "返金の希望",
+            "labels": []
+          },
+          "request_specificity": {
+            "alias": "対応の具体性",
+            "labels": [
+              "段階0",
+              "段階1",
+              "段階2"
+            ]
+          }
+        }
+      },
+      {
+        "name": "32-choice readout includes every candidate",
+        "response": {
+          "model": "local:Qwen3-0.6B-Q4_K_M.gguf:396705472:1790590700676",
+          "answers": {
+            "department": {
+              "type": "choice",
+              "choice": "number 19",
+              "probabilities": {
+                "number 0": 0.3015987460306711,
+                "number 1": 0.06555294149446378,
+                "number 2": 0.00847216494073381,
+                "number 3": 0.011285834041003404,
+                "number 4": 0.017399477208605813,
+                "number 5": 0.0006032486351177903,
+                "number 6": 0.0008649514472933732,
+                "number 7": 0.0006341229406440954,
+                "number 8": 0.001880502373225613,
+                "number 9": 0.0005454930686043876,
+                "number 10": 0.0020172767617688795,
+                "number 11": 0.0010723591432251188,
+                "number 12": 0.0028632482914840783,
+                "number 13": 0.0004835880476813064,
+                "number 14": 0.0003798507168010927,
+                "number 15": 0.06298912370647089,
+                "number 16": 9.713342652800178e-05,
+                "number 17": 0.004246880562562244,
+                "number 18": 0.0010381773411335257,
+                "number 19": 0.4316776292009228,
+                "number 20": 0.016621898513480962,
+                "number 21": 0.006242432747944659,
+                "number 22": 6.170420743055676e-05,
+                "number 23": 0.00010293243248488954,
+                "number 24": 0.0003352504900739326,
+                "number 25": 0.0003848109252504095,
+                "number 26": 7.329764509361743e-05,
+                "number 27": 9.44001381982751e-06,
+                "number 28": 8.705107663529286e-05,
+                "number 29": 6.942474998590836e-05,
+                "number 30": 0.00016480210411799084,
+                "number 31": 0.060144205714740835
+              },
+              "confidence": 0.41334464949772676
+            }
+          }
+        },
+        "diagnostics": {
+          "model": "local:Qwen3-0.6B-Q4_K_M.gguf:396705472:1790590700676",
+          "generation": 2,
+          "load_ms": 1981.5950000025332,
+          "threads": 8,
+          "context": 4096,
+          "supports_images": false,
+          "hardware": {
+            "requested": {
+              "device": "cpu",
+              "threads": 8,
+              "gpuLayers": 0,
+              "context": 4096
+            },
+            "gpu_layers_offloaded": 0
+          },
+          "runtime": "wllama extension page",
+          "wllama_version": "3.6.1",
+          "evaluation_ms": 10193.890000000596,
+          "question_count": 1,
+          "llm_calls": 1,
+          "format_validated": true,
+          "readout_method": "candidate_token_logprobs_v1",
+          "confidence_method": "typesafe_adapter_e1d4cc9",
+          "normalizations": [],
+          "model_outputs": [
+            {
+              "question": "department",
+              "raw_output": "A",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -1.1992650032043457,
+                  "probability": 0.3015987460306711
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -2.7255043983459473,
+                  "probability": 0.06555294149446378
+                },
+                {
+                  "label": "C",
+                  "token": 34,
+                  "logprob": -4.771576404571533,
+                  "probability": 0.00847216494073381
+                },
+                {
+                  "label": "D",
+                  "token": 35,
+                  "logprob": -4.484814167022705,
+                  "probability": 0.011285834041003404
+                },
+                {
+                  "label": "E",
+                  "token": 36,
+                  "logprob": -4.05192232131958,
+                  "probability": 0.017399477208605813
+                },
+                {
+                  "label": "F",
+                  "token": 37,
+                  "logprob": -7.413788318634033,
+                  "probability": 0.0006032486351177903
+                },
+                {
+                  "label": "G",
+                  "token": 38,
+                  "logprob": -7.0534443855285645,
+                  "probability": 0.0008649514472933732
+                },
+                {
+                  "label": "H",
+                  "token": 39,
+                  "logprob": -7.363874912261963,
+                  "probability": 0.0006341229406440954
+                },
+                {
+                  "label": "I",
+                  "token": 40,
+                  "logprob": -6.2768235206604,
+                  "probability": 0.001880502373225613
+                },
+                {
+                  "label": "J",
+                  "token": 41,
+                  "logprob": -7.514427661895752,
+                  "probability": 0.0005454930686043876
+                },
+                {
+                  "label": "K",
+                  "token": 42,
+                  "logprob": -6.206614017486572,
+                  "probability": 0.0020172767617688795
+                },
+                {
+                  "label": "L",
+                  "token": 43,
+                  "logprob": -6.838501453399658,
+                  "probability": 0.0010723591432251188
+                },
+                {
+                  "label": "M",
+                  "token": 44,
+                  "logprob": -5.856405735015869,
+                  "probability": 0.0028632482914840783
+                },
+                {
+                  "label": "N",
+                  "token": 45,
+                  "logprob": -7.634884357452393,
+                  "probability": 0.0004835880476813064
+                },
+                {
+                  "label": "O",
+                  "token": 46,
+                  "logprob": -7.876339435577393,
+                  "probability": 0.0003798507168010927
+                },
+                {
+                  "label": "P",
+                  "token": 47,
+                  "logprob": -2.7654004096984863,
+                  "probability": 0.06298912370647089
+                },
+                {
+                  "label": "Q",
+                  "token": 48,
+                  "logprob": -9.240032196044922,
+                  "probability": 9.713342652800178e-05
+                },
+                {
+                  "label": "R",
+                  "token": 49,
+                  "logprob": -5.462177753448486,
+                  "probability": 0.004246880562562244
+                },
+                {
+                  "label": "S",
+                  "token": 50,
+                  "logprob": -6.870895862579346,
+                  "probability": 0.0010381773411335257
+                },
+                {
+                  "label": "T",
+                  "token": 51,
+                  "logprob": -0.8406834006309509,
+                  "probability": 0.4316776292009228
+                },
+                {
+                  "label": "U",
+                  "token": 52,
+                  "logprob": -4.097641468048096,
+                  "probability": 0.016621898513480962
+                },
+                {
+                  "label": "V",
+                  "token": 53,
+                  "logprob": -5.076992511749268,
+                  "probability": 0.006242432747944659
+                },
+                {
+                  "label": "W",
+                  "token": 54,
+                  "logprob": -9.693765640258789,
+                  "probability": 6.170420743055676e-05
+                },
+                {
+                  "label": "X",
+                  "token": 55,
+                  "logprob": -9.182044982910156,
+                  "probability": 0.00010293243248488954
+                },
+                {
+                  "label": "Y",
+                  "token": 56,
+                  "logprob": -8.001239776611328,
+                  "probability": 0.0003352504900739326
+                },
+                {
+                  "label": "Z",
+                  "token": 57,
+                  "logprob": -7.863365650177002,
+                  "probability": 0.0003848109252504095
+                },
+                {
+                  "label": "0",
+                  "token": 15,
+                  "logprob": -9.521589279174805,
+                  "probability": 7.329764509361743e-05
+                },
+                {
+                  "label": "1",
+                  "token": 16,
+                  "logprob": -11.571160316467285,
+                  "probability": 9.44001381982751e-06
+                },
+                {
+                  "label": "2",
+                  "token": 17,
+                  "logprob": -9.34962272644043,
+                  "probability": 8.705107663529286e-05
+                },
+                {
+                  "label": "3",
+                  "token": 18,
+                  "logprob": -9.575874328613281,
+                  "probability": 6.942474998590836e-05
+                },
+                {
+                  "label": "4",
+                  "token": 19,
+                  "logprob": -8.711372375488281,
+                  "probability": 0.00016480210411799084
+                },
+                {
+                  "label": "5",
+                  "token": 20,
+                  "logprob": -2.811617374420166,
+                  "probability": 0.060144205714740835
+                }
+              ]
+            }
+          ],
+          "images": [],
+          "warnings": [
+            "確率は候補トークン間で正規化した値です。未校正であり、正答率ではありません。",
+            "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+            "質問を直列に実行し、履歴を共有しません。"
+          ]
+        },
+        "input": {
+          "state": "The number is 31.",
+          "questions": {
+            "department": {
+              "type": "choice",
+              "instructions": "Choose the matching number in the text.",
+              "criteria": {
+                "number 0": "The number is 0.",
+                "number 1": "The number is 1.",
+                "number 2": "The number is 2.",
+                "number 3": "The number is 3.",
+                "number 4": "The number is 4.",
+                "number 5": "The number is 5.",
+                "number 6": "The number is 6.",
+                "number 7": "The number is 7.",
+                "number 8": "The number is 8.",
+                "number 9": "The number is 9.",
+                "number 10": "The number is 10.",
+                "number 11": "The number is 11.",
+                "number 12": "The number is 12.",
+                "number 13": "The number is 13.",
+                "number 14": "The number is 14.",
+                "number 15": "The number is 15.",
+                "number 16": "The number is 16.",
+                "number 17": "The number is 17.",
+                "number 18": "The number is 18.",
+                "number 19": "The number is 19.",
+                "number 20": "The number is 20.",
+                "number 21": "The number is 21.",
+                "number 22": "The number is 22.",
+                "number 23": "The number is 23.",
+                "number 24": "The number is 24.",
+                "number 25": "The number is 25.",
+                "number 26": "The number is 26.",
+                "number 27": "The number is 27.",
+                "number 28": "The number is 28.",
+                "number 29": "The number is 29.",
+                "number 30": "The number is 30.",
+                "number 31": "The number is 31."
+              }
+            }
+          }
+        },
+        "presentation": {
+          "department": {
+            "alias": "確認する項目",
+            "labels": [
+              "number 0",
+              "number 1",
+              "number 2",
+              "number 3",
+              "number 4",
+              "number 5",
+              "number 6",
+              "number 7",
+              "number 8",
+              "number 9",
+              "number 10",
+              "number 11",
+              "number 12",
+              "number 13",
+              "number 14",
+              "number 15",
+              "number 16",
+              "number 17",
+              "number 18",
+              "number 19",
+              "number 20",
+              "number 21",
+              "number 22",
+              "number 23",
+              "number 24",
+              "number 25",
+              "number 26",
+              "number 27",
+              "number 28",
+              "number 29",
+              "number 30",
+              "number 31"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Qwen3 Q4_K_M GPU + 12 threads: routing sample",
+        "response": {
+          "model": "local:Qwen3-0.6B-Q4_K_M.gguf:396705472:1790590700676",
+          "answers": {
+            "department": {
+              "type": "choice",
+              "choice": "請求・返金",
+              "probabilities": {
+                "請求・返金": 0.9467346301613848,
+                "配送": 0.018895612361650053,
+                "その他": 0.03436975747696497
+              },
+              "confidence": 0.9201019452420772
+            },
+            "requests_refund": {
+              "type": "noul",
+              "noul": 0.9910874101564848
+            },
+            "request_specificity": {
+              "type": "score",
+              "score": 1.0347007912776807,
+              "probabilities": {
+                "0": 0.3822951014532276,
+                "1": 0.20070900581586415,
+                "2": 0.4169958927309082
+              },
+              "confidence": 0,
+              "legend": {
+                "0": "{\"label\":\"段階0\",\"description\":\"困りごとは書かれているが、求める対応は不明\"}",
+                "1": "{\"label\":\"段階1\",\"description\":\"対応の方向性は分かるが、具体的な行為は不明\"}",
+                "2": "{\"label\":\"段階2\",\"description\":\"求める具体的な行為が明示されている\"}"
+              }
+            }
+          }
+        },
+        "diagnostics": {
+          "model": "local:Qwen3-0.6B-Q4_K_M.gguf:396705472:1790590700676",
+          "generation": 4,
+          "load_ms": 2176.864999998361,
+          "threads": 12,
+          "context": 4096,
+          "supports_images": false,
+          "hardware": {
+            "requested": {
+              "device": "webgpu",
+              "threads": 12,
+              "gpuLayers": 99999,
+              "context": 4096
+            },
+            "gpu_layers_offloaded": 29
+          },
+          "runtime": "wllama extension page",
+          "wllama_version": "3.6.1",
+          "evaluation_ms": 571.5399999991059,
+          "question_count": 3,
+          "llm_calls": 3,
+          "format_validated": true,
+          "readout_method": "candidate_token_logprobs_v1",
+          "confidence_method": "typesafe_adapter_e1d4cc9",
+          "normalizations": [],
+          "model_outputs": [
+            {
+              "question": "department",
+              "raw_output": "A",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -0.054774876683950424,
+                  "probability": 0.9467346301613848
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -3.9688639640808105,
+                  "probability": 0.018895612361650053
+                },
+                {
+                  "label": "C",
+                  "token": 34,
+                  "logprob": -3.3706166744232178,
+                  "probability": 0.03436975747696497
+                }
+              ]
+            },
+            {
+              "question": "requests_refund",
+              "raw_output": "A",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -0.008996661752462387,
+                  "probability": 0.9910874101564848
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -4.720334529876709,
+                  "probability": 0.008912589843515136
+                }
+              ]
+            },
+            {
+              "question": "request_specificity",
+              "raw_output": "B",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -0.9615788459777832,
+                  "probability": 0.3822951014532276
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -1.6059155464172363,
+                  "probability": 0.20070900581586415
+                },
+                {
+                  "label": "C",
+                  "token": 34,
+                  "logprob": -0.8746953010559082,
+                  "probability": 0.4169958927309082
+                }
+              ]
+            }
+          ],
+          "images": [],
+          "warnings": [
+            "確率は候補トークン間で正規化した値です。未校正であり、正答率ではありません。",
+            "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+            "質問を直列に実行し、履歴を共有しません。"
+          ]
+        },
+        "input": {
+          "state": "同じ注文の代金が二度請求されています。返金をお願いします。\n注文状況：配達済み",
+          "questions": {
+            "department": {
+              "type": "choice",
+              "instructions": "この問い合わせの主な担当窓口を選んでください。",
+              "criteria": {
+                "請求・返金": "請求、支払い、返金に関する問い合わせ",
+                "配送": "配送、未着、届け先に関する問い合わせ",
+                "その他": "いずれにも該当しない問い合わせ"
+              }
+            },
+            "requests_refund": {
+              "type": "noul",
+              "instructions": "利用者は返金を求めている。"
+            },
+            "request_specificity": {
+              "type": "score",
+              "instructions": "利用者が求める対応の具体性を評価してください。",
+              "criteria": [
+                {
+                  "label": "段階0",
+                  "description": "困りごとは書かれているが、求める対応は不明"
+                },
+                {
+                  "label": "段階1",
+                  "description": "対応の方向性は分かるが、具体的な行為は不明"
+                },
+                {
+                  "label": "段階2",
+                  "description": "求める具体的な行為が明示されている"
+                }
+              ]
+            }
+          }
+        },
+        "presentation": {
+          "department": {
+            "alias": "担当窓口",
+            "labels": [
+              "請求・返金",
+              "配送",
+              "その他"
+            ]
+          },
+          "requests_refund": {
+            "alias": "返金の希望",
+            "labels": []
+          },
+          "request_specificity": {
+            "alias": "対応の具体性",
+            "labels": [
+              "段階0",
+              "段階1",
+              "段階2"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Qwen3 GPU: user-reported delivery-status text no longer generates numeric JSON",
+        "response": {
+          "model": "local:Qwen3-0.6B-Q4_K_M.gguf:396705472:1790590700676",
+          "answers": {
+            "department": {
+              "type": "choice",
+              "choice": "配送",
+              "probabilities": {
+                "請求・返金": 0.19446558785139573,
+                "配送": 0.8047163632682518,
+                "その他": 0.0008180488803525271
+              },
+              "confidence": 0.7070745449023776
+            },
+            "requests_refund": {
+              "type": "noul",
+              "noul": 0.957212465160378
+            },
+            "request_specificity": {
+              "type": "score",
+              "score": 0.9000683063249121,
+              "probabilities": {
+                "0": 0.48994694179141207,
+                "1": 0.12003781009226341,
+                "2": 0.3900152481163243
+              },
+              "confidence": 0,
+              "legend": {
+                "0": "{\"label\":\"段階0\",\"description\":\"困りごとは書かれているが、求める対応は不明\"}",
+                "1": "{\"label\":\"段階1\",\"description\":\"対応の方向性は分かるが、具体的な行為は不明\"}",
+                "2": "{\"label\":\"段階2\",\"description\":\"求める具体的な行為が明示されている\"}"
+              }
+            }
+          }
+        },
+        "diagnostics": {
+          "model": "local:Qwen3-0.6B-Q4_K_M.gguf:396705472:1790590700676",
+          "generation": 4,
+          "load_ms": 2176.864999998361,
+          "threads": 12,
+          "context": 4096,
+          "supports_images": false,
+          "hardware": {
+            "requested": {
+              "device": "webgpu",
+              "threads": 12,
+              "gpuLayers": 99999,
+              "context": 4096
+            },
+            "gpu_layers_offloaded": 29
+          },
+          "runtime": "wllama extension page",
+          "wllama_version": "3.6.1",
+          "evaluation_ms": 594.8800000026822,
+          "question_count": 3,
+          "llm_calls": 3,
+          "format_validated": true,
+          "readout_method": "candidate_token_logprobs_v1",
+          "confidence_method": "typesafe_adapter_e1d4cc9",
+          "normalizations": [],
+          "model_outputs": [
+            {
+              "question": "department",
+              "raw_output": "B",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -1.6375188827514648,
+                  "probability": 0.19446558785139573
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -0.21728423237800598,
+                  "probability": 0.8047163632682518
+                },
+                {
+                  "label": "C",
+                  "token": 34,
+                  "logprob": -7.108607292175293,
+                  "probability": 0.0008180488803525271
+                }
+              ]
+            },
+            {
+              "question": "requests_refund",
+              "raw_output": "A",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -0.043812740594148636,
+                  "probability": 0.957212465160378
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -3.1515913009643555,
+                  "probability": 0.042787534839622186
+                }
+              ]
+            },
+            {
+              "question": "request_specificity",
+              "raw_output": "A",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 32,
+                  "logprob": -0.7134671211242676,
+                  "probability": 0.48994694179141207
+                },
+                {
+                  "label": "B",
+                  "token": 33,
+                  "logprob": -2.119957447052002,
+                  "probability": 0.12003781009226341
+                },
+                {
+                  "label": "C",
+                  "token": 34,
+                  "logprob": -0.9415783882141113,
+                  "probability": 0.3900152481163243
+                }
+              ]
+            }
+          ],
+          "images": [],
+          "warnings": [
+            "確率は候補トークン間で正規化した値です。未校正であり、正答率ではありません。",
+            "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+            "質問を直列に実行し、履歴を共有しません。"
+          ]
+        },
+        "input": {
+          "state": "荷物がまだ届きません。配送状況を教えてください。",
+          "questions": {
+            "department": {
+              "type": "choice",
+              "instructions": "この問い合わせの主な担当窓口を選んでください。",
+              "criteria": {
+                "請求・返金": "請求、支払い、返金に関する問い合わせ",
+                "配送": "配送、未着、届け先に関する問い合わせ",
+                "その他": "いずれにも該当しない問い合わせ"
+              }
+            },
+            "requests_refund": {
+              "type": "noul",
+              "instructions": "利用者は返金を求めている。"
+            },
+            "request_specificity": {
+              "type": "score",
+              "instructions": "利用者が求める対応の具体性を評価してください。",
+              "criteria": [
+                {
+                  "label": "段階0",
+                  "description": "困りごとは書かれているが、求める対応は不明"
+                },
+                {
+                  "label": "段階1",
+                  "description": "対応の方向性は分かるが、具体的な行為は不明"
+                },
+                {
+                  "label": "段階2",
+                  "description": "求める具体的な行為が明示されている"
+                }
+              ]
+            }
+          }
+        },
+        "presentation": {
+          "department": {
+            "alias": "担当窓口",
+            "labels": [
+              "請求・返金",
+              "配送",
+              "その他"
+            ]
+          },
+          "requests_refund": {
+            "alias": "返金の希望",
+            "labels": []
+          },
+          "request_specificity": {
+            "alias": "対応の具体性",
+            "labels": [
+              "段階0",
+              "段階1",
+              "段階2"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Switch model: SmolLM2 uses its own vocabulary and token probabilities",
+        "response": {
+          "model": "local:SmolLM2-135M-Instruct.Q4_K_M.gguf:105454144:1790578684845",
+          "answers": {
+            "department": {
+              "type": "noul",
+              "noul": 0.8969676397556584
+            }
+          }
+        },
+        "diagnostics": {
+          "model": "local:SmolLM2-135M-Instruct.Q4_K_M.gguf:105454144:1790578684845",
+          "generation": 6,
+          "load_ms": 1032.0149999968708,
+          "threads": 12,
+          "context": 4096,
+          "supports_images": false,
+          "hardware": {
+            "requested": {
+              "device": "webgpu",
+              "threads": 12,
+              "gpuLayers": 99999,
+              "context": 4096
+            },
+            "gpu_layers_offloaded": 31
+          },
+          "runtime": "wllama extension page",
+          "wllama_version": "3.6.1",
+          "evaluation_ms": 205.52499999850988,
+          "question_count": 1,
+          "llm_calls": 1,
+          "format_validated": true,
+          "readout_method": "candidate_token_logprobs_v1",
+          "confidence_method": "typesafe_adapter_e1d4cc9",
+          "normalizations": [],
+          "model_outputs": [
+            {
+              "question": "department",
+              "raw_output": "A",
+              "output_tokens": 1,
+              "candidate_tokens": [
+                {
+                  "label": "A",
+                  "token": 49,
+                  "logprob": -3.554183006286621,
+                  "probability": 0.8969676397556584
+                },
+                {
+                  "label": "B",
+                  "token": 50,
+                  "logprob": -5.7181596755981445,
+                  "probability": 0.10303236024434166
+                }
+              ]
+            }
+          ],
+          "images": [],
+          "warnings": [
+            "確率は候補トークン間で正規化した値です。未校正であり、正答率ではありません。",
+            "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+            "質問を直列に実行し、履歴を共有しません。"
+          ]
+        },
+        "input": {
+          "state": "The cat sleeps.",
+          "questions": {
+            "department": {
+              "type": "noul",
+              "instructions": "The text mentions a cat."
+            }
+          }
+        },
+        "presentation": {
+          "department": {
+            "alias": "確認する項目",
+            "labels": []
+          }
+        }
+      }
+    ],
+    "errors": [],
+    "requests": []
+  },
+  "vision": {
+    "browser": "145.0.7632.6",
+    "passed": [
+      "Image preview/removal and corrupt-image rejection in built extension",
+      "Official LFM2.5-VL-3B repository downloads model and projector together",
+      "Model and projector remain paired after reload and are reusable offline",
+      "Public wllama loads LFM2.5-VL-3B with image capability",
+      "Image-only offline choice/noul/score inference and metadata export; choice changes with red versus blue pixels",
+      "Multiple image previews fit mobile width",
+      "Two images reach all three criteria in real inference",
+      "Switching to a text model rejects attached images rather than ignoring them"
+    ],
+    "notRun": [
+      "Other vision models; broad image accuracy benchmark; low-memory devices"
+    ],
+    "files": "取得ファイル：LFM2.5-VL-3B-Q4_K_M.gguf ＋ 画像用ファイル：mmproj-LFM2.5-VL-3B-Q8_0.gguf"
+  },
+  "vision_results": [
+    {
+      "input": {
+        "state": "添付画像を判定してください。",
+        "questions": {
+          "department": {
+            "type": "choice",
+            "instructions": "Choose the dominant color of the attached image.",
+            "criteria": {
+              "red": "The image is predominantly red.",
+              "blue": "The image is predominantly blue.",
+              "other": "The image is predominantly other."
+            }
+          },
+          "requests_refund": {
+            "type": "noul",
+            "instructions": "The attached image is predominantly red."
+          },
+          "request_specificity": {
+            "type": "score",
+            "instructions": "Rate how red the attached image is. Blue is level zero; red is level two.",
+            "criteria": [
+              {
+                "label": "blue",
+                "description": "The image is predominantly blue."
+              },
+              {
+                "label": "purple",
+                "description": "The image is predominantly purple."
+              },
+              {
+                "label": "red",
+                "description": "The image is predominantly red."
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+        "answers": {
+          "department": {
+            "type": "choice",
+            "choice": "red",
+            "probabilities": {
+              "red": 0.9990824140525065,
+              "blue": 0.0008385012978508276,
+              "other": 7.908464964281135e-05
+            },
+            "confidence": 0.9986236210787598
+          },
+          "requests_refund": {
+            "type": "noul",
+            "noul": 0.9987390527833543
+          },
+          "request_specificity": {
+            "type": "score",
+            "score": 1.9920021893335227,
+            "probabilities": {
+              "0": 0.003918044816713862,
+              "1": 0.0001617210330496273,
+              "2": 0.9959202341502366
+            },
+            "confidence": 0.9880032840002839,
+            "legend": {
+              "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+              "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+              "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+        "generation": 4,
+        "load_ms": 4676.650000002235,
+        "threads": 8,
+        "context": 4096,
+        "supports_images": true,
+        "hardware": {
+          "requested": {
+            "device": "webgpu",
+            "threads": 8,
+            "gpuLayers": 99999,
+            "context": 4096
+          },
+          "gpu_layers_offloaded": 31
+        },
+        "runtime": "wllama extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 2308.925000000745,
+        "question_count": 3,
+        "llm_calls": 3,
+        "format_validated": true,
+        "readout_method": "candidate_token_logprobs_v1",
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "department",
+            "raw_output": "A",
+            "output_tokens": 1,
+            "candidate_tokens": [
+              {
+                "label": "A",
+                "token": 41,
+                "logprob": -0.0010728031629696488,
+                "probability": 0.9990824140525065
+              },
+              {
+                "label": "B",
+                "token": 42,
+                "logprob": -7.084049224853516,
+                "probability": 0.0008385012978508276
+              },
+              {
+                "label": "C",
+                "token": 43,
+                "logprob": -9.445146560668945,
+                "probability": 7.908464964281135e-05
+              }
+            ]
+          },
+          {
+            "question": "requests_refund",
+            "raw_output": "A",
+            "output_tokens": 1,
+            "candidate_tokens": [
+              {
+                "label": "A",
+                "token": 41,
+                "logprob": -0.0016596969217061996,
+                "probability": 0.9987390527833543
+              },
+              {
+                "label": "B",
+                "token": 42,
+                "logprob": -6.676290035247803,
+                "probability": 0.0012609472166456499
+              }
+            ]
+          },
+          {
+            "question": "request_specificity",
+            "raw_output": "C",
+            "output_tokens": 1,
+            "candidate_tokens": [
+              {
+                "label": "A",
+                "token": 41,
+                "logprob": -5.542311668395996,
+                "probability": 0.003918044816713862
+              },
+              {
+                "label": "B",
+                "token": 42,
+                "logprob": -8.72978687286377,
+                "probability": 0.0001617210330496273
+              },
+              {
+                "label": "C",
+                "token": 43,
+                "logprob": -0.004237258341163397,
+                "probability": 0.9959202341502366
+              }
+            ]
+          }
+        ],
+        "images": [
+          {
+            "name": "red.png",
+            "type": "image/png",
+            "size": 2370,
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "warnings": [
+          "確率は候補トークン間で正規化した値です。未校正であり、正答率ではありません。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      }
+    },
+    {
+      "input": {
+        "state": "添付画像を判定してください。",
+        "questions": {
+          "department": {
+            "type": "choice",
+            "instructions": "Choose the dominant color of the attached image.",
+            "criteria": {
+              "red": "The image is predominantly red.",
+              "blue": "The image is predominantly blue.",
+              "other": "The image is predominantly other."
+            }
+          },
+          "requests_refund": {
+            "type": "noul",
+            "instructions": "The attached image is predominantly red."
+          },
+          "request_specificity": {
+            "type": "score",
+            "instructions": "Rate how red the attached image is. Blue is level zero; red is level two.",
+            "criteria": [
+              {
+                "label": "blue",
+                "description": "The image is predominantly blue."
+              },
+              {
+                "label": "purple",
+                "description": "The image is predominantly purple."
+              },
+              {
+                "label": "red",
+                "description": "The image is predominantly red."
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+        "answers": {
+          "department": {
+            "type": "choice",
+            "choice": "blue",
+            "probabilities": {
+              "red": 0.0029326870000664896,
+              "blue": 0.9966006260032548,
+              "other": 0.000466686996678631
+            },
+            "confidence": 0.9949009390048821
+          },
+          "requests_refund": {
+            "type": "noul",
+            "noul": 0.37695769380463295
+          },
+          "request_specificity": {
+            "type": "score",
+            "score": 0.6112377568617655,
+            "probabilities": {
+              "0": 0.6893763733920688,
+              "1": 0.010009496354097067,
+              "2": 0.3006141302538342
+            },
+            "confidence": 0.08314336470735173,
+            "legend": {
+              "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+              "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+              "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+        "generation": 4,
+        "load_ms": 4676.650000002235,
+        "threads": 8,
+        "context": 4096,
+        "supports_images": true,
+        "hardware": {
+          "requested": {
+            "device": "webgpu",
+            "threads": 8,
+            "gpuLayers": 99999,
+            "context": 4096
+          },
+          "gpu_layers_offloaded": 31
+        },
+        "runtime": "wllama extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 2416.665000002831,
+        "question_count": 3,
+        "llm_calls": 3,
+        "format_validated": true,
+        "readout_method": "candidate_token_logprobs_v1",
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "department",
+            "raw_output": "B",
+            "output_tokens": 1,
+            "candidate_tokens": [
+              {
+                "label": "A",
+                "token": 41,
+                "logprob": -5.832126140594482,
+                "probability": 0.0029326870000664896
+              },
+              {
+                "label": "B",
+                "token": 42,
+                "logprob": -0.0036950942594558,
+                "probability": 0.9966006260032548
+              },
+              {
+                "label": "C",
+                "token": 43,
+                "logprob": -7.670141696929932,
+                "probability": 0.000466686996678631
+              }
+            ]
+          },
+          {
+            "question": "requests_refund",
+            "raw_output": "B",
+            "output_tokens": 1,
+            "candidate_tokens": [
+              {
+                "label": "A",
+                "token": 41,
+                "logprob": -0.9763503670692444,
+                "probability": 0.37695769380463295
+              },
+              {
+                "label": "B",
+                "token": 42,
+                "logprob": -0.4738689064979553,
+                "probability": 0.6230423061953669
+              }
+            ]
+          },
+          {
+            "question": "request_specificity",
+            "raw_output": "C",
+            "output_tokens": 1,
+            "candidate_tokens": [
+              {
+                "label": "A",
+                "token": 41,
+                "logprob": -0.3724465072154999,
+                "probability": 0.6893763733920688
+              },
+              {
+                "label": "B",
+                "token": 42,
+                "logprob": -4.604699611663818,
+                "probability": 0.010009496354097067
+              },
+              {
+                "label": "C",
+                "token": 43,
+                "logprob": -1.202406406402588,
+                "probability": 0.3006141302538342
+              }
+            ]
+          }
+        ],
+        "images": [
+          {
+            "name": "blue.png",
+            "type": "image/png",
+            "size": 2372,
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "warnings": [
+          "確率は候補トークン間で正規化した値です。未校正であり、正答率ではありません。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      }
+    }
+  ],
+  "batch": {
+    "passed": [
+      "Separate batch page imports quoted multiline CSV, infers columns, keeps duplicate names and independent shared criteria",
+      "Real mixed-type text batch isolates empty row, computes verified aggregates, shows per-row detail and exports CSV/JSON",
+      "Cancellation preserves completed rows; resume reuses original criteria and avoids reevaluating successes",
+      "Mobile layout confines wide result tables to horizontal table scrolling",
+      "55 real text evaluations finish; individual results paginate 50 + 5 without omissions",
+      "Ten-image batch with real LFM2.5-VL: nine valid images evaluated individually, corrupt image isolated; eleven images rejected",
+      "No page errors or external HTTP requests during batch processing"
+    ],
+    "image_summary": {
+      "totals": {
+        "total": 10,
+        "success": 9,
+        "error": 1,
+        "cancelled": 0,
+        "pending": 0,
+        "running": 0
+      },
+      "criteria": {
+        "department": {
+          "type": "choice",
+          "count": 9,
+          "mean": null,
+          "min": null,
+          "max": null,
+          "counts": {
+            "red": 5,
+            "blue": 4,
+            "other": 0
+          },
+          "meanWeights": {
+            "red": 0.5566605944934988,
+            "blue": 0.44309454165342055,
+            "other": 0.0002448638530805716
+          },
+          "atLeastHalf": 0
+        },
+        "requests_refund": {
+          "type": "noul",
+          "count": 9,
+          "mean": 0.7223917821261447,
+          "min": 0.37695769380463295,
+          "max": 0.9987390527833543,
+          "counts": {},
+          "meanWeights": {},
+          "atLeastHalf": 5
+        },
+        "request_specificity": {
+          "type": "score",
+          "count": 9,
+          "mean": 1.378329108234964,
+          "min": 0.6112377568617655,
+          "max": 1.9920021893335227,
+          "counts": {
+            "0": 0,
+            "1": 0,
+            "2": 0
+          },
+          "meanWeights": {
+            "0": 0.30856619085020504,
+            "1": 0.004538510064626267,
+            "2": 0.6868952990851689
+          },
+          "atLeastHalf": 0
+        }
+      }
+    },
+    "notRun": [
+      "10,000 real LLM evaluations; long overnight execution; low-memory devices"
+    ]
+  },
+  "not_run": [
+    "All other GGUF/tokenizer combinations",
+    "Full accuracy/calibration benchmark",
+    "10,000 real records or overnight endurance",
+    "Real-world OCR/photo corpus",
+    "Controlled before/after latency benchmark"
+  ],
+  "observed_accuracy_errors": [
+    "Qwen3 Q4_K_M assigns high refund applicability to delivery-status-only text",
+    "Qwen3 Q4_K_M misclassifies number 31 among 32 options"
+  ],
+  "development_failures_resolved": [
+    "32 returned logprobs omitted some of the 32 labels: increased to 64, no zero fill",
+    "512 logprobs caused LFM2.5-VL Invalid typed array length: limited to 64 and reran vision and batch"
+  ],
+  "ui": {
+    "passed": [
+      "judge page has ordinary fields and no JSON or internal vocabulary",
+      "alias changes independently of id; choice labels add and remove",
+      "score stages reorder together with descriptions and survive type switching",
+      "separate page navigation and browser Back preserve edited inputs",
+      "criteria add and remove with generated ids",
+      "desktop and mobile layouts render without horizontal overflow",
+      "real MV3 CSP; no page errors, external requests, or new permissions"
+    ],
+    "errors": []
+  }
+}

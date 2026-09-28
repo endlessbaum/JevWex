@@ -1,0 +1,23 @@
+{
+  "date": "2026-09-28T07:55:14.330Z",
+  "browser": "145.0.7632.6",
+  "passed": [
+    "production MV3 loads under real CSP",
+    "sample and form/JSON round trip",
+    "duplicate input key rejected in UI",
+    "no external HTTP(S) requests, including inference data",
+    "no browser console/page errors",
+    "host access limited to model distribution; no content scripts"
+  ],
+  "notRun": [
+    "real GGUF tests: set JEV_TEST_MODEL"
+  ],
+  "requests": [
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js"
+  ],
+  "consoleErrors": [],
+  "results": [],
+  "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html"
+}

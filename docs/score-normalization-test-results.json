@@ -1,0 +1,114 @@
+{
+  "date": "2026-09-28T07:45:19.625Z",
+  "browser": "145.0.7632.6",
+  "passed": [
+    "production MV3 loads under real CSP",
+    "sample and form/JSON round trip",
+    "duplicate input key rejected in UI",
+    "offline local GGUF / Worker / WASM load",
+    "real choice schema + postprocessing",
+    "real noul schema + postprocessing",
+    "real score schema + postprocessing",
+    "real mixed sequential evaluation",
+    "repeated evaluation retains model generation",
+    "state instructions cannot add accepted output keys"
+  ],
+  "notRun": [],
+  "requests": [
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/b68e95d7-2e5f-46ba-8b66-d53ba1d7f8c8",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm"
+  ],
+  "consoleErrors": [],
+  "results": [
+    {
+      "case": "animal",
+      "result": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "answers": {
+          "animal": {
+            "type": "choice",
+            "choice": "animal",
+            "probabilities": {
+              "animal": 0.5,
+              "vehicle": 0.5
+            },
+            "confidence": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "cat",
+      "result": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "answers": {
+          "cat": {
+            "type": "noul",
+            "noul": 0.8
+          }
+        }
+      }
+    },
+    {
+      "case": "detail",
+      "result": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "answers": {
+          "detail": {
+            "type": "score",
+            "score": 0.5,
+            "probabilities": {
+              "0": 0.5,
+              "1": 0.5
+            },
+            "confidence": 0,
+            "legend": {
+              "0": "Only names an animal.",
+              "1": "Describes an animal and what it does."
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "mixed",
+      "result": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "answers": {
+          "animal": {
+            "type": "choice",
+            "choice": "animal",
+            "probabilities": {
+              "animal": 0.5,
+              "vehicle": 0.5
+            },
+            "confidence": 0
+          },
+          "cat": {
+            "type": "noul",
+            "noul": 0.8
+          },
+          "detail": {
+            "type": "score",
+            "score": 0.5,
+            "probabilities": {
+              "0": 0.5,
+              "1": 0.5
+            },
+            "confidence": 0,
+            "legend": {
+              "0": "Only names an animal.",
+              "1": "Describes an animal and what it does."
+            }
+          }
+        }
+      }
+    }
+  ],
+  "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+  "loaded": "使用モデル：local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586 / CPU・WASM / 1 thread / context 4096 / 読込 2.18 秒 / 世代 2",
+  "failure": "TimeoutError: page.waitForFunction: Timeout 30000ms exceeded."
+}

@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "JevWex - WASM AI for Chrome",
+  "version": "0.1.0",
+  "cross_origin_embedder_policy": { "value": "require-corp" },
+  "cross_origin_opener_policy": { "value": "same-origin" },
+  "description": "WebAssemblyでローカルAIを動かすChrome拡張。文章や画像を自分の基準で判定・分類し、一括処理と結果の集計ができます。",
+  "action": { "default_title": "JevWexを開く" },
+  "background": { "service_worker": "launch.js" },
+  "host_permissions": [
+    "https://huggingface.co/*",
+    "https://us.aws.cdn.hf.co/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; connect-src 'self' https://huggingface.co https://us.aws.cdn.hf.co;"
+  }
+}

@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>判定 | JevWex</title>
+    <link rel="stylesheet" href="page.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#judge"
+          ><span class="brand-mark">J</span> JevWex
+          <span class="brand-small">Chrome × WebAssembly</span></a
+        >
+        <nav aria-label="メインメニュー">
+          <a id="nav-judge" href="#judge"
+            ><span aria-hidden="true">▤</span> 判定</a
+          ><a id="nav-batch" href="#batch"
+            ><span aria-hidden="true">▥</span> 一括判定</a
+          ><a id="nav-models" href="#models"
+            ><span aria-hidden="true">▦</span> モデル管理</a
+          ><a id="nav-hardware" href="#hardware"
+            ><span aria-hidden="true">⚙</span> ハードウェア設定</a
+          >
+        </nav>
+        <p class="sidebar-note">
+          入力した文章と画像は<br />この端末で処理します。
+        </p>
+      </aside>
+      <main>
+        <div id="batch-page" hidden>
+          <header>
+            <div>
+              <p class="eyebrow">まとめて確認する</p>
+              <h1 tabindex="-1">一括判定</h1>
+              <p class="lead">
+                共通の判定基準でデータを順番に判定し、個別結果と集計を確認します。
+              </p>
+            </div>
+          </header>
+          <div class="model-strip">
+            <p id="batch-model">モデルを準備してください。</p>
+            <a href="#models" class="button secondary">モデル管理 →</a>
+          </div>
+          <section aria-labelledby="batch-input-heading">
+            <div class="section-title">
+              <span class="step">1</span>
+              <h2 id="batch-input-heading">判定するデータ</h2>
+            </div>
+            <fieldset id="batch-input-fields">
+              <label
+                >取り込み方法<select id="batch-format">
+                  <option value="lines">文章一覧（1行を1件）</option>
+                  <option value="table">CSV・表の貼り付け</option>
+                  <option value="images">画像一覧（1枚を1件・最大10枚）</option>
+                </select></label
+              >
+              <div id="batch-text-input">
+                <div class="row">
+                  <label class="grow"
+                    >ファイルから取り込む<input
+                      id="batch-file"
+                      type="file"
+                      accept=".csv,.tsv,.txt" /></label
+                  ><label
+                    >ファイルの文字コード<select id="batch-encoding">
+                      <option value="utf-8">UTF-8</option>
+                      <option value="shift_jis">
+                        Shift_JIS（日本語のCSV）
+                      </option>
+                    </select></label
+                  >
+                </div>
+                <label
+                  >データを貼り付ける<textarea
+                    id="batch-source"
+                    rows="6"
+                    placeholder="1行に1件の文章、またはExcelなどの表を貼り付けてください。"
+                  ></textarea>
+                </label>
+                <p class="muted">
+                  文章は最大10,000件・20
+                  MiBまで。改行を含む文章はCSVのセルに入れて取り込めます。
+                </p>
+                <div id="batch-columns" hidden>
+                  <label class="batch-checkbox"
+                    ><input
+                      id="batch-header"
+                      type="checkbox"
+                      checked
+                    />先頭行は列の見出し</label
+                  >
+                  <div class="row">
+                    <label class="grow"
+                      >判定する内容の列<select id="batch-content-column">
+                        <option value="-1">行全体を使う</option>
+                      </select></label
+                    ><label class="grow"
+                      >データ名の列<select id="batch-name-column">
+                        <option value="-1">連番を使う</option>
+                      </select></label
+                    >
+                  </div>
+                </div>
+                <div class="row">
+                  <button id="batch-preview-button" class="secondary">
+                    取り込み内容を確認</button
+                  ><button id="batch-sample" class="text-button">
+                    CSVの入力例を使う
+                  </button>
+                </div>
+              </div>
+              <div id="batch-image-input" hidden>
+                <label
+                  >画像をまとめて選択<input
+                    id="batch-images"
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    multiple
+                /></label>
+                <label
+                  >すべての画像に添える文章（任意）<textarea
+                    id="batch-image-text"
+                    rows="2"
+                    placeholder="例：商品の状態を確認してください。"
+                  ></textarea>
+                </label>
+                <p class="muted">
+                  1枚ずつ別のデータとして判定します。最大10枚、PNG・JPEG、1枚10
+                  MiB以下。画像対応モデルを使ってください。
+                </p>
+              </div>
+              <p id="batch-input-count" role="status">0件</p>
+              <div class="batch-table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>番号</th>
+                      <th>データ名</th>
+                      <th>判定する内容</th>
+                    </tr>
+                  </thead>
+                  <tbody id="batch-preview"></tbody>
+                </table>
+              </div>
+            </fieldset>
+          </section>
+          <section aria-labelledby="batch-criteria-heading">
+            <fieldset id="batch-criteria-fields">
+              <div class="section-title">
+                <span class="step">2</span>
+                <h2 id="batch-criteria-heading">共通の判定基準</h2>
+                <span id="batch-criteria-count" class="muted"></span>
+              </div>
+              <p class="muted">
+                すべてのデータに同じ基準を使います。ここでの編集は通常の判定画面の基準には影響しません。
+              </p>
+              <button id="batch-copy-criteria" class="secondary">
+                判定ページの基準をコピー
+              </button>
+              <div id="batch-criteria"></div>
+              <button id="batch-add-criterion" class="add-criterion">
+                ＋ 判定基準を追加
+              </button>
+            </fieldset>
+            <p id="batch-input-note" class="muted"></p>
+          </section>
+          <div class="run-bar">
+            <button id="batch-run" class="primary" disabled>
+              新しく一括判定</button
+            ><button id="batch-resume" class="secondary" disabled>
+              未完了・失敗分を再開</button
+            ><button id="batch-cancel" class="secondary" disabled>中止</button>
+          </div>
+          <p class="muted">
+            再開は開始時のデータ・基準と、同じモデルを読み込んだままで行います。実行中はモデルを切り替えません。
+          </p>
+          <p id="batch-error" role="alert" hidden></p>
+          <progress
+            id="batch-progress"
+            value="0"
+            max="1"
+            aria-label="一括判定の進捗"
+          ></progress>
+          <p id="batch-progress-text" role="status" aria-live="polite">
+            まだ判定していません。
+          </p>
+          <section aria-labelledby="batch-summary-heading">
+            <div class="section-title">
+              <span class="step">3</span>
+              <h2 id="batch-summary-heading">集計結果</h2>
+              <button id="batch-summary-csv" class="secondary" disabled>
+                集計をダウンロード
+              </button>
+            </div>
+            <p id="batch-summary-note" class="muted">
+              判定が完了したデータを集計します。
+            </p>
+            <div id="batch-summary" class="batch-summary"></div>
+          </section>
+          <section aria-labelledby="batch-results-heading">
+            <div class="section-title">
+              <h2 id="batch-results-heading">1件ごとの結果</h2>
+              <button id="batch-csv" class="secondary" disabled>
+                個別結果をダウンロード</button
+              ><button id="batch-json" class="secondary" disabled>
+                詳細データを保存
+              </button>
+            </div>
+            <div class="row">
+              <label class="grow"
+                >データを検索<input
+                  id="batch-search"
+                  type="search"
+                  placeholder="データ名・内容" /></label
+              ><label
+                >表示する結果<select id="batch-filter">
+                  <option value="all">すべて</option>
+                  <option value="success">完了</option>
+                  <option value="error">失敗</option>
+                  <option value="pending">未処理</option>
+                  <option value="running">判定中</option>
+                  <option value="cancelled">中止</option>
+                </select></label
+              >
+            </div>
+            <div class="batch-table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>番号</th>
+                    <th>データ名</th>
+                    <th>状態</th>
+                    <th>判定結果</th>
+                    <th>詳細</th>
+                  </tr>
+                </thead>
+                <tbody id="batch-rows"></tbody>
+              </table>
+            </div>
+            <div class="row">
+              <button id="batch-previous" class="secondary" disabled>
+                前へ</button
+              ><span id="batch-page-number">0件</span
+              ><button id="batch-next" class="secondary" disabled>次へ</button>
+            </div>
+          </section>
+        </div>
+        <div id="hardware-page" hidden>
+          <header>
+            <div>
+              <p class="eyebrow">動作環境</p>
+              <h1 tabindex="-1">ハードウェア設定</h1>
+              <p class="lead">
+                この端末で使う処理方法と、CPUの並列数を選びます。
+              </p>
+            </div>
+          </header>
+          <section aria-labelledby="hardware-detected-heading">
+            <h2 id="hardware-detected-heading">利用できるハードウェア</h2>
+            <p id="hardware-cpu">CPUを確認しています…</p>
+            <p id="hardware-gpu">GPUを確認しています…</p>
+            <p id="hardware-gpu-reason" class="muted"></p>
+          </section>
+          <section aria-labelledby="hardware-settings-heading">
+            <h2 id="hardware-settings-heading">処理の設定</h2>
+            <div class="hardware-fields">
+              <label
+                >処理方法<select id="hardware-device">
+                  <option value="cpu">CPUを使う</option>
+                  <option id="gpu-option" value="webgpu" disabled>
+                    GPUを使う（WebGPU）
+                  </option>
+                </select></label
+              >
+              <p class="muted">
+                GPUの利用可否はブラウザとモデルによります。読み込みに失敗する場合はCPUへ切り替えてください。
+              </p>
+              <label
+                >CPUスレッド数<select id="hardware-threads">
+                  <option value="auto">自動</option>
+                  <option value="1">1スレッド</option>
+                </select></label
+              >
+              <p id="hardware-thread-hint" class="muted">
+                自動はCPUの論理コア数の半分、最大8スレッドです。増やすほど速くなるとは限りません。
+              </p>
+              <div id="gpu-layer-field" hidden>
+                <label
+                  >GPUに任せる範囲<select id="hardware-layers">
+                    <option value="all">すべての層</option>
+                    <option value="4">4層</option>
+                    <option value="8">8層</option>
+                    <option value="16">16層</option>
+                    <option value="32">32層</option>
+                    <option value="64">64層</option>
+                  </select></label
+                >
+                <p class="muted">
+                  GPUメモリが足りない場合は、任せる層を減らしてください。
+                </p>
+              </div>
+              <label
+                >一度に扱える文章量<select id="hardware-context">
+                  <option value="1024">短い文章（1,024トークン）</option>
+                  <option value="2048">標準（2,048トークン）</option>
+                  <option value="4096">長め（4,096トークン）</option>
+                  <option value="8192">長い文章（8,192トークン）</option>
+                </select></label
+              >
+              <p class="muted">
+                画像・判定基準と回答も含めた上限です。大きくすると使用メモリが増えます。
+              </p>
+            </div>
+            <div class="row">
+              <button id="hardware-save" class="primary" disabled>
+                設定を保存</button
+              ><button id="hardware-apply" class="secondary" disabled>
+                モデルを再読み込みして適用</button
+              ><button id="hardware-reset" class="text-button">
+                初期値に戻す
+              </button>
+            </div>
+            <p id="hardware-status" role="status" aria-live="polite">
+              設定はこのブラウザに保存します。読み込み済みモデルへの反映には再読み込みが必要です。
+            </p>
+          </section>
+          <section aria-labelledby="hardware-current-heading">
+            <h2 id="hardware-current-heading">現在のモデルの動作設定</h2>
+            <p id="hardware-current">モデルはまだ読み込まれていません。</p>
+            <p class="muted">
+              判定中には設定を適用しません。設定の保存だけでは、実行中のモデルは変わりません。
+            </p>
+          </section>
+        </div>
+        <div id="model-page" hidden>
+          <header>
+            <div>
+              <p class="eyebrow">準備</p>
+              <h1 tabindex="-1">モデル管理</h1>
+              <p class="lead">
+                モデルを追加して、判定に使うモデルを準備します。
+              </p>
+            </div>
+            <a href="#judge" class="button secondary">判定へ進む →</a>
+          </header>
+          <section aria-labelledby="model-heading">
+            <h2 id="model-heading">使用するモデル</h2>
+            <div class="row">
+              <label class="grow"
+                >追加済みのモデル<select id="models">
+                  <option value="">モデルを選択してください</option>
+                </select></label
+              ><button id="load" class="primary">読み込む</button
+              ><button id="unload" class="secondary">使用を終了</button>
+            </div>
+            <p id="selection" class="muted"></p>
+            <p id="loaded" class="model-ready">
+              モデルはまだ準備されていません
+            </p>
+            <p id="cache-warning" class="muted"></p>
+          </section>
+          <section aria-labelledby="download-heading">
+            <h2 id="download-heading">モデルをダウンロード</h2>
+            <p class="muted">
+              Hugging
+              Faceのモデル名を入力してください。保存したモデルは次回も選べます。
+            </p>
+            <label
+              >モデル名 または ダウンロード先<input
+                id="download-url"
+                type="text"
+                placeholder="例：unsloth/Qwen3-0.6B-GGUF"
+                spellcheck="false"
+            /></label>
+            <p class="muted">
+              モデル名の場合はQ4_K_M版を選びます。別の種類を使う場合はGGUFファイルの直接URLを入力できます。
+            </p>
+            <details>
+              <summary>画像用ファイルを指定する（必要な場合）</summary>
+              <label
+                >画像用ファイルのダウンロード先<input
+                  id="download-projector"
+                  type="url"
+                  placeholder="https://huggingface.co/…/mmproj-….gguf"
+              /></label>
+              <p class="muted">
+                リポジトリ名からの新規取得では自動で探します。直接URLを使う場合や、本体だけ保存済みの場合は、同じモデル用の画像用ファイル（mmproj）の直接URLを指定してください。
+              </p>
+            </details>
+            <div class="row">
+              <button id="download" class="primary">ダウンロード</button
+              ><button id="download-cancel" class="secondary" disabled>
+                中止</button
+              ><button id="download-example" class="text-button">
+                入力例を使う</button
+              ><button id="download-vision-example" class="text-button">
+                画像モデルの入力例
+              </button>
+            </div>
+            <p id="download-resolved" class="metadata"></p>
+            <progress
+              id="download-progress"
+              max="1"
+              hidden
+              aria-label="ダウンロードの進捗"
+            ></progress>
+            <p id="download-status" role="status" aria-live="polite">
+              モデル名を入力してダウンロードを押してください。
+            </p>
+          </section>
+          <section aria-labelledby="file-heading">
+            <h2 id="file-heading">端末のファイルから追加</h2>
+            <label
+              >GGUFファイル<input
+                id="files"
+                type="file"
+                accept=".gguf"
+                multiple
+            /></label>
+            <p class="muted">
+              画像対応モデルは本体と画像用ファイル（mmproj）を一緒に選択してください。分割モデルもすべてのファイルを一緒に選択してください。端末のファイルは、タブを閉じると再選択が必要です。
+            </p>
+          </section>
+        </div>
+        <div id="judge-page">
+          <header>
+            <div>
+              <p class="eyebrow">文章と画像を読み解く</p>
+              <h1 tabindex="-1">判定</h1>
+              <p class="lead">
+                文章や画像と判定基準を入力して、結果を確認します。
+              </p>
+            </div>
+            <div class="sample-control">
+              <label>入力例<select id="examples"></select></label
+              ><button id="sample" class="secondary">使う</button>
+            </div>
+          </header>
+          <div class="model-strip">
+            <div>
+              <span class="dot" id="model-dot"></span
+              ><span id="judge-model">モデルが未準備です</span>
+              <p id="model-hint" class="muted">
+                モデル管理でモデルを追加し、読み込んでください。
+              </p>
+              <p
+                id="startup-status"
+                class="muted"
+                role="status"
+                aria-live="polite"
+              >
+                最後に使ったモデルとハードウェア設定を保存し、次回の準備に使います。
+              </p>
+            </div>
+            <a class="button secondary" href="#models">モデル管理 →</a>
+          </div>
+          <section aria-labelledby="input-heading">
+            <div class="section-title">
+              <span class="step">1</span>
+              <h2 id="input-heading">判定する内容</h2>
+            </div>
+            <label class="sr-only" for="state">判定する文章</label
+            ><textarea
+              id="state"
+              rows="5"
+              placeholder="問い合わせ、記事、案内文などを入力してください"
+            ></textarea>
+            <div class="image-input">
+              <label
+                >画像を追加<input
+                  id="images"
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  multiple
+                  aria-describedby="image-hint"
+              /></label>
+              <p id="image-hint" class="muted" role="status"></p>
+              <p class="muted">
+                PNG・JPEG、1枚10
+                MiB以下、最大4枚。画像だけでも判定できます。画像もこの端末で処理します。
+              </p>
+              <div id="image-previews" class="image-previews"></div>
+            </div>
+          </section>
+          <section aria-labelledby="criteria-heading" class="criteria-section">
+            <div class="section-title">
+              <span class="step">2</span>
+              <h2 id="criteria-heading">判定基準</h2>
+              <span id="criteria-count" class="muted"></span>
+            </div>
+            <p class="muted">
+              何を判定するか、基準ごとに名前と説明を付けます。
+            </p>
+            <div id="criteria"></div>
+            <button id="add-criterion" class="add-criterion">
+              ＋ 判定基準を追加
+            </button>
+          </section>
+          <div class="run-bar">
+            <button id="run" class="primary">判定する</button
+            ><button id="cancel" class="secondary" disabled>中止</button
+            ><span id="run-hint" class="muted"
+              >モデルを準備すると判定できます。</span
+            >
+          </div>
+          <section aria-labelledby="result-heading">
+            <div class="section-title">
+              <span class="step">3</span>
+              <h2 id="result-heading">判定結果</h2>
+              <button id="download-result" class="secondary" disabled>
+                結果をダウンロード
+              </button>
+            </div>
+            <p id="result-note" class="muted">
+              判定すると、ここに結果が表示されます。
+            </p>
+            <div id="results"></div>
+          </section>
+        </div>
+        <p id="error" role="alert" hidden></p>
+        <div class="activity">
+          <span id="status" role="status" aria-live="polite">準備待ち</span
+          ><span id="elapsed"></span>
+        </div>
+        <footer>
+          入力と結果は自動保存・外部送信しません。タブを閉じると入力と実行中のモデルを終了します。
+        </footer>
+      </main>
+    </div>
+    <script type="module" src="page.js"></script>
+  </body>
+</html>

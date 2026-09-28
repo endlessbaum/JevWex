@@ -1,0 +1,220 @@
+{
+  "browser": "145.0.7632.6",
+  "cases": [
+    {
+      "name": "explicit_refund",
+      "input": {
+        "state": {
+          "message": "同じ注文の代金が二度請求されています。返金をお願いします。",
+          "order_status": "delivered"
+        },
+        "questions": {
+          "request_specificity": {
+            "type": "score",
+            "instructions": "利用者が求める対応の具体性を評価してください。",
+            "criteria": [
+              "困りごとは書かれているが、求める対応は不明",
+              "対応の方向性は分かるが、具体的な行為は不明",
+              "求める具体的な行為が明示されている"
+            ]
+          }
+        }
+      },
+      "raw": "{\n  \"p0\": 0.0,\n  \"p1\": 0.0,\n  \"p2\": 1.0\n}",
+      "sum": 1,
+      "expected": 2,
+      "answer": {
+        "type": "score",
+        "score": 2,
+        "probabilities": {
+          "0": 0,
+          "1": 0,
+          "2": 1
+        },
+        "confidence": 1,
+        "legend": {
+          "0": "困りごとは書かれているが、求める対応は不明",
+          "1": "対応の方向性は分かるが、具体的な行為は不明",
+          "2": "求める具体的な行為が明示されている"
+        }
+      },
+      "bars": [
+        0,
+        0,
+        1
+      ],
+      "diagnostics": {
+        "model": "cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+        "generation": 2,
+        "load_ms": 2215.4000000003725,
+        "threads": 1,
+        "context": 4096,
+        "runtime": "CPU/WASM extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 96706.5,
+        "question_count": 1,
+        "llm_calls": 1,
+        "format_validated": true,
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "request_specificity",
+            "raw_output": "{\n  \"p0\": 0.0,\n  \"p1\": 0.0,\n  \"p2\": 1.0\n}"
+          }
+        ],
+        "warnings": [
+          "確率はローカルLLMが生成した未校正の推定です。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      }
+    },
+    {
+      "name": "no_requested_action",
+      "input": {
+        "state": {
+          "message": "同じ注文の代金が二度請求されています。",
+          "order_status": "delivered"
+        },
+        "questions": {
+          "request_specificity": {
+            "type": "score",
+            "instructions": "利用者が求める対応の具体性を評価してください。",
+            "criteria": [
+              "困りごとは書かれているが、求める対応は不明",
+              "対応の方向性は分かるが、具体的な行為は不明",
+              "求める具体的な行為が明示されている"
+            ]
+          }
+        }
+      },
+      "raw": "{\n  \"p0\": 0.5,\n  \"p1\": 0.5,\n  \"p2\": 0.0\n}",
+      "sum": 1,
+      "expected": 0.5,
+      "answer": {
+        "type": "score",
+        "score": 0.5,
+        "probabilities": {
+          "0": 0.5,
+          "1": 0.5,
+          "2": 0
+        },
+        "confidence": 0.25,
+        "legend": {
+          "0": "困りごとは書かれているが、求める対応は不明",
+          "1": "対応の方向性は分かるが、具体的な行為は不明",
+          "2": "求める具体的な行為が明示されている"
+        }
+      },
+      "bars": [
+        0.5,
+        0.5,
+        0
+      ],
+      "diagnostics": {
+        "model": "cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+        "generation": 2,
+        "load_ms": 2215.4000000003725,
+        "threads": 1,
+        "context": 4096,
+        "runtime": "CPU/WASM extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 107538,
+        "question_count": 1,
+        "llm_calls": 1,
+        "format_validated": true,
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "request_specificity",
+            "raw_output": "{\n  \"p0\": 0.5,\n  \"p1\": 0.5,\n  \"p2\": 0.0\n}"
+          }
+        ],
+        "warnings": [
+          "確率はローカルLLMが生成した未校正の推定です。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      }
+    },
+    {
+      "name": "vague_action",
+      "input": {
+        "state": {
+          "message": "同じ注文の代金が二度請求されています。なんとかしてください。",
+          "order_status": "delivered"
+        },
+        "questions": {
+          "request_specificity": {
+            "type": "score",
+            "instructions": "利用者が求める対応の具体性を評価してください。",
+            "criteria": [
+              "困りごとは書かれているが、求める対応は不明",
+              "対応の方向性は分かるが、具体的な行為は不明",
+              "求める具体的な行為が明示されている"
+            ]
+          }
+        }
+      },
+      "raw": "{\n  \"p0\": 0,\n  \"p1\": 0.5,\n  \"p2\": 1\n}",
+      "sum": 1.5,
+      "expected": 1.6666666666666667,
+      "answer": {
+        "type": "score",
+        "score": 1.6666666666666665,
+        "probabilities": {
+          "0": 0,
+          "1": 0.3333333333333333,
+          "2": 0.6666666666666666
+        },
+        "confidence": 0.5,
+        "legend": {
+          "0": "困りごとは書かれているが、求める対応は不明",
+          "1": "対応の方向性は分かるが、具体的な行為は不明",
+          "2": "求める具体的な行為が明示されている"
+        }
+      },
+      "bars": [
+        0,
+        0.3333333333333333,
+        0.6666666666666666
+      ],
+      "diagnostics": {
+        "model": "cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+        "generation": 2,
+        "load_ms": 2215.4000000003725,
+        "threads": 1,
+        "context": 4096,
+        "runtime": "CPU/WASM extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 91469.59999999963,
+        "question_count": 1,
+        "llm_calls": 1,
+        "format_validated": true,
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [
+          {
+            "question": "request_specificity",
+            "original_sum": 1.5,
+            "action": "各段階の重みを元の和で除算してscoreを計算"
+          }
+        ],
+        "model_outputs": [
+          {
+            "question": "request_specificity",
+            "raw_output": "{\n  \"p0\": 0,\n  \"p1\": 0.5,\n  \"p2\": 1\n}"
+          }
+        ],
+        "warnings": [
+          "確率はローカルLLMが生成した未校正の推定です。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "model": "cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf"
+}

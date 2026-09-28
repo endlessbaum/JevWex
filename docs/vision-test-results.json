@@ -1,0 +1,467 @@
+{
+  "browser": "145.0.7632.6",
+  "passed": [
+    "Image preview/removal and corrupt-image rejection in built extension",
+    "Official LFM2.5-VL-3B repository downloads model and projector together",
+    "Model and projector remain paired after reload and are reusable offline",
+    "Public wllama loads LFM2.5-VL-3B with image capability",
+    "Image-only offline choice/noul/score inference and metadata export; choice changes with red versus blue pixels",
+    "Multiple image previews fit mobile width",
+    "Two images reach all three criteria in real inference",
+    "Switching to a text model rejects attached images rather than ignoring them"
+  ],
+  "results": [
+    {
+      "response": {
+        "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+        "answers": {
+          "department": {
+            "type": "choice",
+            "choice": "red",
+            "probabilities": {
+              "red": 1,
+              "blue": 0,
+              "other": 0
+            },
+            "confidence": 1
+          },
+          "requests_refund": {
+            "type": "noul",
+            "noul": 1
+          },
+          "request_specificity": {
+            "type": "score",
+            "score": 2,
+            "probabilities": {
+              "0": 0,
+              "1": 0,
+              "2": 1
+            },
+            "confidence": 1,
+            "legend": {
+              "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+              "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+              "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+        "generation": 2,
+        "load_ms": 4727.440000001341,
+        "threads": 8,
+        "context": 4096,
+        "supports_images": true,
+        "hardware": {
+          "requested": {
+            "device": "webgpu",
+            "threads": 8,
+            "gpuLayers": 99999,
+            "context": 4096
+          },
+          "gpu_layers_offloaded": 31
+        },
+        "runtime": "wllama extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 3092.5950000006706,
+        "question_count": 3,
+        "llm_calls": 3,
+        "format_validated": true,
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "department",
+            "raw_output": "{\"p0\":1,\"p1\":0,\"p2\":0}"
+          },
+          {
+            "question": "requests_refund",
+            "raw_output": "{\"noul\": 1}"
+          },
+          {
+            "question": "request_specificity",
+            "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+          }
+        ],
+        "images": [
+          {
+            "name": "red.png",
+            "type": "image/png",
+            "size": 2370,
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "warnings": [
+          "確率はローカルLLMが生成した未校正の推定です。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      },
+      "input": {
+        "state": "添付画像を判定してください。",
+        "questions": {
+          "department": {
+            "type": "choice",
+            "instructions": "Choose the dominant color of the attached image.",
+            "criteria": {
+              "red": "The image is predominantly red.",
+              "blue": "The image is predominantly blue.",
+              "other": "The image is predominantly other."
+            }
+          },
+          "requests_refund": {
+            "type": "noul",
+            "instructions": "The attached image is predominantly red."
+          },
+          "request_specificity": {
+            "type": "score",
+            "instructions": "Rate how red the attached image is. Blue is level zero; red is level two.",
+            "criteria": [
+              {
+                "label": "blue",
+                "description": "The image is predominantly blue."
+              },
+              {
+                "label": "purple",
+                "description": "The image is predominantly purple."
+              },
+              {
+                "label": "red",
+                "description": "The image is predominantly red."
+              }
+            ]
+          }
+        }
+      },
+      "presentation": {
+        "department": {
+          "alias": "担当窓口",
+          "labels": [
+            "red",
+            "blue",
+            "other"
+          ]
+        },
+        "requests_refund": {
+          "alias": "返金の希望",
+          "labels": []
+        },
+        "request_specificity": {
+          "alias": "対応の具体性",
+          "labels": [
+            "blue",
+            "purple",
+            "red"
+          ]
+        }
+      }
+    },
+    {
+      "response": {
+        "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+        "answers": {
+          "department": {
+            "type": "choice",
+            "choice": "blue",
+            "probabilities": {
+              "red": 0,
+              "blue": 1,
+              "other": 0
+            },
+            "confidence": 1
+          },
+          "requests_refund": {
+            "type": "noul",
+            "noul": 0
+          },
+          "request_specificity": {
+            "type": "score",
+            "score": 2,
+            "probabilities": {
+              "0": 0,
+              "1": 0,
+              "2": 1
+            },
+            "confidence": 1,
+            "legend": {
+              "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+              "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+              "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+            }
+          }
+        }
+      },
+      "diagnostics": {
+        "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+        "generation": 2,
+        "load_ms": 4727.440000001341,
+        "threads": 8,
+        "context": 4096,
+        "supports_images": true,
+        "hardware": {
+          "requested": {
+            "device": "webgpu",
+            "threads": 8,
+            "gpuLayers": 99999,
+            "context": 4096
+          },
+          "gpu_layers_offloaded": 31
+        },
+        "runtime": "wllama extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 3294.355000000447,
+        "question_count": 3,
+        "llm_calls": 3,
+        "format_validated": true,
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "department",
+            "raw_output": "{\"p0\":0.0,\"p1\":1.0,\"p2\":0.0}"
+          },
+          {
+            "question": "requests_refund",
+            "raw_output": "{\"noul\": 0.0}"
+          },
+          {
+            "question": "request_specificity",
+            "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+          }
+        ],
+        "images": [
+          {
+            "name": "blue.png",
+            "type": "image/png",
+            "size": 2372,
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "warnings": [
+          "確率はローカルLLMが生成した未校正の推定です。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      },
+      "input": {
+        "state": "添付画像を判定してください。",
+        "questions": {
+          "department": {
+            "type": "choice",
+            "instructions": "Choose the dominant color of the attached image.",
+            "criteria": {
+              "red": "The image is predominantly red.",
+              "blue": "The image is predominantly blue.",
+              "other": "The image is predominantly other."
+            }
+          },
+          "requests_refund": {
+            "type": "noul",
+            "instructions": "The attached image is predominantly red."
+          },
+          "request_specificity": {
+            "type": "score",
+            "instructions": "Rate how red the attached image is. Blue is level zero; red is level two.",
+            "criteria": [
+              {
+                "label": "blue",
+                "description": "The image is predominantly blue."
+              },
+              {
+                "label": "purple",
+                "description": "The image is predominantly purple."
+              },
+              {
+                "label": "red",
+                "description": "The image is predominantly red."
+              }
+            ]
+          }
+        }
+      },
+      "presentation": {
+        "department": {
+          "alias": "担当窓口",
+          "labels": [
+            "red",
+            "blue",
+            "other"
+          ]
+        },
+        "requests_refund": {
+          "alias": "返金の希望",
+          "labels": []
+        },
+        "request_specificity": {
+          "alias": "対応の具体性",
+          "labels": [
+            "blue",
+            "purple",
+            "red"
+          ]
+        }
+      }
+    }
+  ],
+  "notRun": [
+    "Other vision models; broad image accuracy benchmark; low-memory devices"
+  ],
+  "files": "取得ファイル：LFM2.5-VL-3B-Q4_K_M.gguf ＋ 画像用ファイル：mmproj-LFM2.5-VL-3B-Q8_0.gguf",
+  "multipleImages": {
+    "response": {
+      "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+      "answers": {
+        "department": {
+          "type": "choice",
+          "choice": "red",
+          "probabilities": {
+            "red": 0.5,
+            "blue": 0.5,
+            "other": 0
+          },
+          "confidence": 0.25
+        },
+        "requests_refund": {
+          "type": "noul",
+          "noul": 0.5
+        },
+        "request_specificity": {
+          "type": "score",
+          "score": 2,
+          "probabilities": {
+            "0": 0,
+            "1": 0,
+            "2": 1
+          },
+          "confidence": 1,
+          "legend": {
+            "0": "{\"label\":\"blue\",\"description\":\"The image is predominantly blue.\"}",
+            "1": "{\"label\":\"purple\",\"description\":\"The image is predominantly purple.\"}",
+            "2": "{\"label\":\"red\",\"description\":\"The image is predominantly red.\"}"
+          }
+        }
+      }
+    },
+    "diagnostics": {
+      "model": "cache:https://huggingface.co/LiquidAI/LFM2.5-VL-3B-GGUF/resolve/main/LFM2.5-VL-3B-Q4_K_M.gguf",
+      "generation": 2,
+      "load_ms": 4727.440000001341,
+      "threads": 8,
+      "context": 4096,
+      "supports_images": true,
+      "hardware": {
+        "requested": {
+          "device": "webgpu",
+          "threads": 8,
+          "gpuLayers": 99999,
+          "context": 4096
+        },
+        "gpu_layers_offloaded": 31
+      },
+      "runtime": "wllama extension page",
+      "wllama_version": "3.6.1",
+      "evaluation_ms": 4188.785000000149,
+      "question_count": 3,
+      "llm_calls": 3,
+      "format_validated": true,
+      "confidence_method": "typesafe_adapter_e1d4cc9",
+      "normalizations": [],
+      "model_outputs": [
+        {
+          "question": "department",
+          "raw_output": "{\"p0\":0.5,\"p1\":0.5,\"p2\":0}"
+        },
+        {
+          "question": "requests_refund",
+          "raw_output": "{\"noul\": 0.5}"
+        },
+        {
+          "question": "request_specificity",
+          "raw_output": "{\"p0\":0,\"p1\":0,\"p2\":1}"
+        }
+      ],
+      "images": [
+        {
+          "name": "red.png",
+          "type": "image/png",
+          "size": 2370,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": "blue.png",
+          "type": "image/png",
+          "size": 2372,
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "warnings": [
+        "確率はローカルLLMが生成した未校正の推定です。",
+        "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+        "質問を直列に実行し、履歴を共有しません。"
+      ]
+    },
+    "input": {
+      "state": "添付画像を判定してください。",
+      "questions": {
+        "department": {
+          "type": "choice",
+          "instructions": "Choose the dominant color of the attached image.",
+          "criteria": {
+            "red": "The image is predominantly red.",
+            "blue": "The image is predominantly blue.",
+            "other": "The image is predominantly other."
+          }
+        },
+        "requests_refund": {
+          "type": "noul",
+          "instructions": "The attached image is predominantly red."
+        },
+        "request_specificity": {
+          "type": "score",
+          "instructions": "Rate how red the attached image is. Blue is level zero; red is level two.",
+          "criteria": [
+            {
+              "label": "blue",
+              "description": "The image is predominantly blue."
+            },
+            {
+              "label": "purple",
+              "description": "The image is predominantly purple."
+            },
+            {
+              "label": "red",
+              "description": "The image is predominantly red."
+            }
+          ]
+        }
+      }
+    },
+    "presentation": {
+      "department": {
+        "alias": "担当窓口",
+        "labels": [
+          "red",
+          "blue",
+          "other"
+        ]
+      },
+      "requests_refund": {
+        "alias": "返金の希望",
+        "labels": []
+      },
+      "request_specificity": {
+        "alias": "対応の具体性",
+        "labels": [
+          "blue",
+          "purple",
+          "red"
+        ]
+      }
+    }
+  }
+}

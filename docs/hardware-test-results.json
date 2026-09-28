@@ -1,0 +1,159 @@
+{
+  "browser": "145.0.7632.6",
+  "passed": [
+    "settings persist; real extension enables isolated shared memory",
+    "explicit one-thread CPU loads and evaluates",
+    "saving does not mutate loaded runtime; apply reloads same model with actual multiple threads",
+    "WebGPU model offload confirmed through public logs and real inference",
+    "no external requests during CPU/GPU load and inference"
+  ],
+  "notRun": [],
+  "runs": [
+    {
+      "mode": "cpu1",
+      "diagnostics": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "generation": 2,
+        "load_ms": 2221.3450000006706,
+        "threads": 1,
+        "context": 4096,
+        "hardware": {
+          "requested": {
+            "device": "cpu",
+            "threads": 1,
+            "gpuLayers": 0,
+            "context": 4096
+          },
+          "gpu_layers_offloaded": 0
+        },
+        "runtime": "wllama extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 26877.08999999985,
+        "question_count": 1,
+        "llm_calls": 1,
+        "format_validated": true,
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "department",
+            "raw_output": "{\"noul\":0.9}"
+          }
+        ],
+        "warnings": [
+          "確率はローカルLLMが生成した未校正の推定です。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      }
+    },
+    {
+      "mode": "cpu4",
+      "diagnostics": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "generation": 4,
+        "load_ms": 1609.9199999999255,
+        "threads": 4,
+        "context": 2048,
+        "hardware": {
+          "requested": {
+            "device": "cpu",
+            "threads": 4,
+            "gpuLayers": 0,
+            "context": 2048
+          },
+          "gpu_layers_offloaded": 0
+        },
+        "runtime": "wllama extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 8835.695000000298,
+        "question_count": 1,
+        "llm_calls": 1,
+        "format_validated": true,
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "department",
+            "raw_output": "{\"noul\":0.9}"
+          }
+        ],
+        "warnings": [
+          "確率はローカルLLMが生成した未校正の推定です。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      }
+    },
+    {
+      "mode": "webgpu",
+      "diagnostics": {
+        "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+        "generation": 6,
+        "load_ms": 2498.910000000149,
+        "threads": 4,
+        "context": 2048,
+        "hardware": {
+          "requested": {
+            "device": "webgpu",
+            "threads": 4,
+            "gpuLayers": 99999,
+            "context": 2048
+          },
+          "gpu_layers_offloaded": 25
+        },
+        "runtime": "wllama extension page",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 840.4150000009686,
+        "question_count": 1,
+        "llm_calls": 1,
+        "format_validated": true,
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "department",
+            "raw_output": "{\"noul\":0.9}"
+          }
+        ],
+        "warnings": [
+          "確率はローカルLLMが生成した未校正の推定です。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "requests": [
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/e0c51a99-3918-4e93-8591-04a2f047b5d7",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/f9556386-6d20-4283-a352-7e28eb4bcbbd",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/496143f1-a93f-42d8-86d0-ce644f80a727",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/fde8ec06-7482-46b5-9f65-cda0be919cc8",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/eed7285b-ff0a-4ab2-add6-5b6eb4317b73",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/e94c6177-326b-42d3-abdd-c8f96c57dd69",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/8a857b80-d99a-4788-a967-8769fba1a2b3",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/4d073c61-18fd-45d4-b1e8-99d632fce3de",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/0c0c2529-5015-4c35-a22a-3fab872a18c3",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/8b38225b-96e8-440d-991f-5090055947e5",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/5f40e519-c0f9-452c-87fd-50591831ca6e",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm"
+  ],
+  "capabilities": {
+    "isolated": true,
+    "shared": true,
+    "cores": 20,
+    "cpu": "CPU：20論理コア / 複数スレッドを利用できます",
+    "gpu": "GPU：amd rdna-4",
+    "gpuReason": "利用候補を検出しました。モデルを読み込んで動作を確認します。",
+    "gpuEnabled": true
+  }
+}

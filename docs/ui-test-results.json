@@ -1,0 +1,105 @@
+{
+  "browser": "145.0.7632.6",
+  "passed": [
+    "judge page has ordinary fields and no JSON or internal vocabulary",
+    "alias changes independently of id; choice labels add and remove",
+    "score stages reorder together with descriptions and survive type switching",
+    "separate page navigation and browser Back preserve edited inputs",
+    "criteria add and remove with generated ids",
+    "desktop and mobile layouts render without horizontal overflow",
+    "offline model survives navigation; real score displays alias and exports labels, input, raw output",
+    "old result retains its original alias after edits",
+    "duplicate labels show a plain-language validation error",
+    "releasing the model is reflected on the judge page",
+    "real MV3 CSP; no page errors, external requests, or new permissions"
+  ],
+  "notRun": [],
+  "requests": [
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/85ebae54-ae4d-4d6f-9553-08c29fd98fcc",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm"
+  ],
+  "errors": [],
+  "result": {
+    "response": {
+      "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+      "answers": {
+        "department": {
+          "type": "score",
+          "score": 0.6666666666666666,
+          "probabilities": {
+            "0": 0.3333333333333333,
+            "1": 0.6666666666666666
+          },
+          "confidence": 0.33333333333333337,
+          "legend": {
+            "0": "{\"label\":\"Brief\",\"description\":\"Only names a subject.\"}",
+            "1": "{\"label\":\"Detailed\",\"description\":\"Describes an action and a place.\"}"
+          }
+        }
+      }
+    },
+    "diagnostics": {
+      "model": "local:qwen2.5-0.5b-instruct-q4_k_m.gguf:491400032:1790579358586",
+      "generation": 2,
+      "load_ms": 2307.89999999851,
+      "threads": 1,
+      "context": 4096,
+      "runtime": "CPU/WASM extension page",
+      "wllama_version": "3.6.1",
+      "evaluation_ms": 38204.20000000112,
+      "question_count": 1,
+      "llm_calls": 1,
+      "format_validated": true,
+      "confidence_method": "typesafe_adapter_e1d4cc9",
+      "normalizations": [
+        {
+          "question": "department",
+          "original_sum": 1.5,
+          "action": "各段階の重みを元の和で除算してscoreを計算"
+        }
+      ],
+      "model_outputs": [
+        {
+          "question": "department",
+          "raw_output": "{\"p0\":0.5,\"p1\":1}"
+        }
+      ],
+      "warnings": [
+        "確率はローカルLLMが生成した未校正の推定です。",
+        "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+        "質問を直列に実行し、履歴を共有しません。"
+      ]
+    },
+    "input": {
+      "state": "The cat sleeps on a sofa.",
+      "questions": {
+        "department": {
+          "type": "score",
+          "instructions": "Rate the detail in the text.",
+          "criteria": [
+            {
+              "label": "Brief",
+              "description": "Only names a subject."
+            },
+            {
+              "label": "Detailed",
+              "description": "Describes an action and a place."
+            }
+          ]
+        }
+      }
+    },
+    "presentation": {
+      "department": {
+        "alias": "文章の詳しさ",
+        "labels": [
+          "Brief",
+          "Detailed"
+        ]
+      }
+    }
+  }
+}

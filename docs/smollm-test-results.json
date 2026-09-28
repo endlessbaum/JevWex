@@ -1,0 +1,23 @@
+{
+  "date": "2026-09-28T07:08:08.452Z",
+  "browser": "145.0.7632.6",
+  "passed": [
+    "production MV3 loads under real CSP",
+    "sample and form/JSON round trip",
+    "duplicate input key rejected in UI",
+    "offline local GGUF / Worker / WASM load"
+  ],
+  "notRun": [],
+  "requests": [
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.css",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/page.js",
+    "blob:chrome-extension://njffakcbeheenofiiodpdffhangefbmk/69d277bb-815e-4054-9507-2bfe05e0f65b",
+    "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/runtime/wllama.wasm"
+  ],
+  "consoleErrors": [],
+  "results": [],
+  "url": "chrome-extension://njffakcbeheenofiiodpdffhangefbmk/jev.html",
+  "loaded": "使用モデル：local:SmolLM2-135M-Instruct.Q4_K_M.gguf:105454144:1790578684845 / CPU・WASM / 1 thread / context 4096 / 読込 0.94 秒 / 世代 2",
+  "failure": "AssertionError [ERR_ASSERTION]: INVALID_OUTPUT / 質問 animal: 確率の和が不正です: 2\n\ntrue !== false\n"
+}

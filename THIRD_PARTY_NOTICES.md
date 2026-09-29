@@ -2,6 +2,22 @@
 
 Original JevWex code is licensed under the MIT License, Copyright (c) 2026 endlessbaum; see LICENSE. The third-party components and adapted portions listed below retain their respective licenses and copyright notices. Model weights and multimodal projectors are not bundled. Tested models and their separate terms are listed in the repository README.md.
 
+## Server runtime dependencies
+
+The optional HTTP server uses the ordinary npm packages `playwright` and
+`playwright-core` 1.58.2 (Apache-2.0) to manage its own headless Chromium.
+These packages and Chromium are not included in the Chrome extension bundle.
+Keep the LICENSE and NOTICE files supplied with the packages when redistributing
+them. Chromium is installed separately and retains its own bundled notices.
+
+The NOTICE supplied by both Playwright packages reads:
+
+> Playwright
+> Copyright (c) Microsoft Corporation
+>
+> This software contains code derived from the Puppeteer project (https://github.com/puppeteer/puppeteer),
+> available under the Apache 2.0 license (https://github.com/puppeteer/puppeteer/blob/master/LICENSE).
+
 ## SemIf
 
 The constrained one-token readout and conditional softmax approach references

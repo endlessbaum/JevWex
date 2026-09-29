@@ -1,0 +1,29 @@
+{
+  "model": "unsloth/Qwen3-0.6B-GGUF",
+  "passed": [
+    "default repository resolves, downloads and loads in server-owned browser"
+  ],
+  "failure": null,
+  "status": {
+    "phase": "ready",
+    "loaded": {
+      "model": "cache:https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+      "generation": 2,
+      "load_ms": 1964.3850000016391,
+      "threads": 4,
+      "context": 4096,
+      "supports_images": false,
+      "hardware": {
+        "requested": {
+          "device": "cpu",
+          "threads": 4,
+          "gpuLayers": 0,
+          "context": 4096
+        },
+        "gpu_layers_offloaded": 0
+      }
+    },
+    "detail": "APIを利用できます"
+  },
+  "elapsed_ms": 18051
+}

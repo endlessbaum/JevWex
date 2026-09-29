@@ -1,8 +1,10 @@
 # ページの利用・内部構成
 
+この文書はChrome拡張版について説明します。同じUIを配信するWeb版と、画面を閉じても使えるサーバー管理のHTTP APIは [server.md](server.md) を参照してください。
+
 ## 起動
 
-Node.js 22で `npm ci` → `npm run build`。生成された `dist` をChromeへunpacked extensionとして読み込みます。拡張アイコンが `chrome-extension://<ID>/index.html` を通常タブとして開きます。Service Workerはこの起動処理のみで、推論・データ保持は行いません。
+Node.js 22で `npm ci` → `npm run build`。生成された `dist` をChromeへunpacked extensionとして読み込みます。従来の `index.html` は独立した管理用タブとして、モデル管理・ハードウェア設定・一括判定・手入力判定・URL別条件管理を提供します。拡張アイコンは専用の `panel.html` を開き、閲覧中のページを取り込みます。パネルでは条件の作成とオン／オフができ、オンの条件で判定します。`Alt+Shift+J` からパネルを開かずに実行することもでき、結果は対象ページのオーバーレイに表示します。Service Workerは起動・取得・実行の取りまとめを担当し、推論は管理用タブで読み込んだModelSessionへ依頼します。[Webページ判定・URL別条件管理](web-pages.md)
 
 ## モデル
 
@@ -35,7 +37,7 @@ Node.js 22で `npm ci` → `npm run build`。生成された `dist` をChromeへ
 
 JS・Workerコードはnpm配布物を通常のバンドル処理で同梱し、WASMは同じ3.6.1配布物からbuildでコピーします。`setCompat(null)` で互換CDN取得を無効化します。connect-srcの外部通信先は明示的モデル取得用の `huggingface.co` と実測した `us.aws.cdn.hf.co` に限定します。JS内に依存元の未使用CDN文字列が残っていても、それを取得する設定にはしません。起動時に外部フォント・モデル・JS・WASMを取得しません。
 
-モデル配信用の限定host permissions以外の拡張権限、外部公開API、content script、チャット、常駐推論、Offscreen Document、localhostサーバーはありません。ページは自身の専用Workerを所有します。ブラウザによるdocument破棄でWorkerが終了し、`pagehide` での公開 `exit()` は補助的処理です。終了イベントの非同期完了には依存しません。
+拡張版はモデル配信用の限定host permissionsに加え、`activeTab`・`scripting`・`storage`・`sidePanel` を使用します。常駐content scriptは登録せず、ユーザーの取得操作で表示テキストを読み取ります。推論を行う拡張ページは自身の専用Workerを所有し、document破棄でWorkerが終了します。`pagehide` での公開 `exit()` は補助的処理です。終了イベントの非同期完了には依存しません。サーバー版の実行環境は [server.md](server.md) を参照してください。
 
 ## ファイル
 

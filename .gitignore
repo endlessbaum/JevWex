@@ -1,6 +1,7 @@
 # Installed dependencies and generated output
 node_modules/
 /dist/
+/dist-web/
 /coverage/
 *.tsbuildinfo
 
@@ -11,6 +12,7 @@ node_modules/
 /test-results/
 /playwright-report/
 /.cache/
+/server.config.json
 
 # Local credentials and logs
 .env

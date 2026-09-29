@@ -1,0 +1,11 @@
+{
+  "passed": [
+    "child exclusions update all same-list checkboxes, highlights and preview before batch selection; other lists and other paths remain included; ambiguous root labels are removed",
+    "restoring any peer restores all peers; multiple relative paths persist with automatic main selection and survive reload",
+    "newly loaded items inherit exclusions on refresh; missing optional children do not remove item content or exclude a different nested link",
+    "batch selection preserves shared exclusions, whole-item exclusion affects only one item, and page picking propagates descendants to every item",
+    "previously saved individual child exclusions are shared and can be restored from any item",
+    "renamed narrow-to-subtree button retains its distinct root-selection behavior"
+  ],
+  "errors": []
+}

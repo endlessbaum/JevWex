@@ -1,0 +1,12 @@
+{
+  "passed": [
+    "automatic main-content capture excludes site navigation, footer and hidden text",
+    "HTML tree excludes entire child subtrees and displays their highlights, reduced counts and exact text preview",
+    "saved exclusions persist by URL and are applied on recapture after navigation",
+    "page picking narrows the root and parent navigation adjusts the structural boundary",
+    "shortcut execution path sends only the saved content range to the inference manager",
+    "missing saved selectors stop capture instead of expanding silently; reset restores automatic selection",
+    "page exclusion intercepts link navigation, and navigating away removes editor and listeners"
+  ],
+  "errors": []
+}

@@ -4,7 +4,7 @@ export function createRuntime(onLog?: (text: string) => void): Wllama {
     for (const arg of args) if (typeof arg === "string") onLog?.(arg);
   };
   const runtime = new Wllama(
-    { default: chrome.runtime.getURL("runtime/wllama.wasm") },
+    { default: new URL("runtime/wllama.wasm", document.baseURI).href },
     {
       suppressNativeLog: false,
       logger: { debug: log, log, warn: log, error: log },

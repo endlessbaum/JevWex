@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>このページを判定 | JevWex</title>
+    <link rel="stylesheet" href="panel.css" />
+  </head>
+  <body>
+    <header>
+      <span class="brand">JevWex</span
+      ><button id="open-management" class="link">管理画面 ↗</button>
+    </header>
+    <main>
+      <h1>このページを判定</h1>
+      <section class="source">
+        <h2 id="source-title">ページを取得してください</h2>
+        <p id="source-url"></p>
+        <p id="source-time" class="muted"></p>
+        <button id="source-refresh">現在のページを再取得</button>
+      </section>
+      <details id="target-preview">
+        <summary>新しい条件の対象を確認</summary>
+        <p id="scope-summary" class="muted">本文候補を自動で選びます。</p>
+        <pre id="source-preview"></pre>
+      </details>
+      <h2>このURLの判定条件</h2>
+      <div id="source-rules"></div>
+      <p id="rule-note" class="muted">オンの条件をまとめて判定します。</p>
+      <button id="new-rule" disabled>＋ 判定条件を作成</button>
+      <button id="manage-rule" class="link">管理画面で編集 ↗</button>
+      <section id="create-condition" hidden aria-labelledby="create-title">
+        <h2 id="create-title">判定条件を作成</h2>
+        <fieldset id="create-fields">
+          <p id="create-target" class="muted"></p>
+          <button id="create-target-edit">対象を調整する</button>
+          <label
+            >条件名<input
+              id="create-name"
+              maxlength="120"
+              placeholder="例：記事の信頼性"
+          /></label>
+          <label
+            >対象URL<input id="create-url" type="url" maxlength="4096"
+          /></label>
+          <label
+            >適用範囲<select id="create-scope">
+              <option value="exact">このURLのみ</option>
+              <option value="subtree">配下のページ</option>
+              <option value="origin">サイト全体</option>
+            </select></label
+          >
+          <div id="create-criteria"></div>
+          <button id="create-add">＋ 判定基準を追加</button>
+          <div class="actions">
+            <button id="create-save" class="primary">対象と基準を保存</button
+            ><button id="create-close">閉じる</button>
+          </div>
+        </fieldset>
+        <p id="create-error" role="alert" hidden></p>
+      </section>
+      <p id="model-status" role="status">管理画面に接続しています…</p>
+      <button id="open-models" class="link">管理画面でモデルを準備 ↗</button>
+      <div class="actions">
+        <button id="run" class="primary" disabled>オンの条件で判定</button
+        ><button id="cancel" disabled>中止</button>
+      </div>
+      <p id="error" role="alert" hidden></p>
+      <p id="progress" role="status" aria-live="polite"></p>
+      <p class="muted">
+        結果はWebページ上に表示します。パネルを閉じても実行は続きます。
+      </p>
+      <p id="shortcut-hint" class="muted">パネルを開かずに判定：Alt+Shift+J</p>
+    </main>
+    <footer>
+      モデルの設定は管理画面で行います。判定中は管理用タブを開いたままにしてください。
+    </footer>
+    <script type="module" src="panel.js"></script>
+  </body>
+</html>

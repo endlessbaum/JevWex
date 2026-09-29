@@ -1,5 +1,15 @@
 import "./page.css";
 import { BatchPage } from "./batch-page";
+import { ServerPage } from "../../server/status-page";
+import { SitePage } from "./site-page";
+import { ManagerBridge } from "../../extension/judge-channel";
+import { loadPageImages } from "../../extension/page-images";
+import {
+  matchesUrl,
+  normalizeUrl,
+  readRules,
+} from "../../extension/site-rules";
+declare const __JEVWEX_WEB__: boolean;
 import {
   readImage,
   validateImageFiles,
@@ -47,9 +57,16 @@ const state = new RequestState();
 let images: { image: InputImage; url: string }[] = [];
 let readingImages = false;
 let batchPage: BatchPage | undefined;
+let serverPage: ServerPage | undefined;
+let sitePage: SitePage | undefined;
+let managerBridge: ManagerBridge | undefined;
 const editor = new CriteriaEditor($("criteria"), edited);
 let result:
-  | { evaluation: LocalEvaluation; input: JevInput; presentation: Presentation }
+  | {
+      evaluation: LocalEvaluation;
+      input: JevInput;
+      presentation: Presentation;
+    }
   | undefined;
 let operating = false,
   started = 0;
@@ -66,26 +83,40 @@ const download = new ModelDownload(modelManager);
 
 function route(focus = false) {
   const current =
-    location.hash === "#models"
-      ? "models"
-      : location.hash === "#hardware"
-        ? "hardware"
-        : location.hash === "#batch"
-          ? "batch"
-          : "judge";
+    sitePage && location.hash === "#sites"
+      ? "sites"
+      : location.hash === "#models"
+        ? "models"
+        : location.hash === "#hardware"
+          ? "hardware"
+          : location.hash === "#batch"
+            ? "batch"
+            : __JEVWEX_WEB__ && location.hash === "#server"
+              ? "server"
+              : "judge";
   const pages = {
     models: "model-page",
     judge: "judge-page",
     hardware: "hardware-page",
     batch: "batch-page",
+    server: "server-page",
+    sites: "sites-page",
   };
-  for (const name of ["models", "judge", "hardware", "batch"] as const) {
+  const names = [
+    "models",
+    "judge",
+    "hardware",
+    "batch",
+    ...(__JEVWEX_WEB__ && serverPage ? ["server"] : []),
+    ...(sitePage ? ["sites"] : []),
+  ] as (keyof typeof pages)[];
+  for (const name of names) {
     const active = current === name;
     $(pages[name]).hidden = !active;
     if (active) $("nav-" + name).setAttribute("aria-current", "page");
     else $("nav-" + name).removeAttribute("aria-current");
   }
-  document.title = `${current === "models" ? "モデル管理" : current === "hardware" ? "ハードウェア設定" : current === "batch" ? "一括判定" : "判定"} | JevWex`;
+  document.title = `${current === "sites" ? "URL別の判定条件" : current === "models" ? "モデル管理" : current === "hardware" ? "ハードウェア設定" : current === "batch" ? "一括判定" : current === "server" ? "HTTP API" : "判定"} | JevWex`;
   if (current === "batch") batchPage?.enter();
   if (focus) {
     $(pages[current])
@@ -97,6 +128,7 @@ function route(focus = false) {
 window.addEventListener("hashchange", () => route(true));
 
 function renderSession() {
+  managerBridge?.publish();
   const labels = {
     empty: "準備待ち",
     loading: "モデルを読み込んでいます",
@@ -300,8 +332,7 @@ function showError(error: unknown) {
   const messages: Partial<Record<typeof e.code, string>> = {
     CONTEXT_LIMIT:
       "文章・画像・判定基準がモデルの処理できる量を超えています。画像を減らすか、ハードウェア設定で扱える量を増やしてください。",
-    INVALID_OUTPUT:
-      e.message,
+    INVALID_OUTPUT: e.message,
     OUTPUT_LIMIT:
       "モデルの回答が長くなりすぎました。判定する内容・条件を短くするか、別のモデルで試してください。",
     CANCELLED: "判定を中止しました。",
@@ -544,6 +575,8 @@ $("download-result").onclick = () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 window.addEventListener("pagehide", () => {
+  managerBridge?.close();
+  void serverPage?.disconnect();
   batchPage?.dispose();
   download.cancel();
   session.dispose();
@@ -779,5 +812,86 @@ batchPage = new BatchPage({
     renderSession();
   },
 });
+if (__JEVWEX_WEB__) serverPage = new ServerPage();
+else {
+  document.querySelector("footer")!.textContent =
+    "判定は端末内で行います。保存したURL・条件はこの拡張内に残ります。取得したページ内容はブラウザ終了まで一時保持し、判定結果は自動保存しません。";
+  sitePage = new SitePage(() => editor.read());
+  const manage = (destination: "models" | "sites", url?: string) => {
+    if (url) {
+      void action(() =>
+        sitePage!.open({
+          id: crypto.randomUUID(),
+          name: "ページの判定条件",
+          url: normalizeUrl(url),
+          scope: "exact",
+          enabled: true,
+          criteria: editor.read(),
+        }),
+      );
+    } else location.hash = destination;
+  };
+  managerBridge = new ManagerBridge({
+    status: () => ({
+      supportsImages: session.loaded?.supports_images === true,
+      ready:
+        !operating &&
+        !readingImages &&
+        session.phase === "ready" &&
+        !!session.loaded,
+      model: session.loaded
+        ? (session.models.get(session.loaded.model)?.label ??
+          "読み込み済みモデル")
+        : "",
+      phase:
+        session.phase === "loading"
+          ? "モデル読み込み中"
+          : operating || session.phase === "running"
+            ? "判定中"
+            : session.phase === "ready"
+              ? "準備完了"
+              : "モデルを準備してください",
+    }),
+    evaluate: async (request, signal) => {
+      if (operating || session.phase !== "ready")
+        throw new Error("別の処理を実行中です。");
+      operating = true;
+      started = performance.now();
+      renderSession();
+      try {
+        const rule = (await readRules()).find(
+          (rule) => rule.id === request.ruleId,
+        );
+        signal.throwIfAborted();
+        if (!rule || !matchesUrl(rule, request.url))
+          throw new Error(
+            "このURLの条件が削除・変更されています。条件を選び直してください。",
+          );
+        if (request.images?.length && !session.loaded?.supports_images)
+          throw new Error(
+            "現在のモデルは画像を読み取れません。画像対応モデルと画像用ファイルを読み込んでください。",
+          );
+        const images = await loadPageImages(request.images ?? [], signal);
+        const { input, presentation } = buildInput(
+          request.text || (images.length ? "添付画像を判定してください。" : ""),
+          rule.criteria,
+        );
+        const evaluation = await session.evaluate(input, signal, images);
+        return { evaluation, input, presentation };
+      } finally {
+        operating = false;
+        started = 0;
+        renderSession();
+      }
+    },
+    cancel: () => session.stop(),
+    manage,
+  });
+  const siteUrl = new URLSearchParams(location.search).get("siteUrl");
+  if (siteUrl) {
+    history.replaceState(null, "", location.pathname + "#sites");
+    manage("sites", siteUrl);
+  }
+}
 route();
 renderSession();

@@ -53,7 +53,10 @@ export interface Snapshot {
 export interface LocalEvaluation {
   response: { model: string; answers: Record<string, Answer> };
   diagnostics: Snapshot & {
-    runtime: "wllama extension page";
+    runtime:
+      | "wllama extension page"
+      | "wllama browser page"
+      | "wllama server browser";
     wllama_version: "3.6.1";
     evaluation_ms: number;
     question_count: number;

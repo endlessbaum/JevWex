@@ -1,0 +1,154 @@
+{
+  "passed": [
+    "API performs choice/score/noul before any UI browser is opened",
+    "plain HTTP page is isolated and displays API model/settings on desktop and mobile",
+    "existing model management, hardware and single judgement work on the served page independently of the API model",
+    "served batch page evaluates two records, aggregates and downloads results",
+    "Node.js and Python sample clients both perform real API inference",
+    "concurrent API requests run serially without conflicting with the UI",
+    "API request and actual image decoding errors are validated",
+    "disconnect cancels active API inference and the engine remains reusable",
+    "API continues to work after the entire UI browser is closed"
+  ],
+  "notRun": [
+    "APIの画像モデル実推論・WebGPU実推論",
+    "長時間連続運転・OSスリープ復帰",
+    "サーバー版での10,000件一括推論"
+  ],
+  "runs": [
+    {
+      "response": {
+        "model": "server:Qwen3-0.6B-Q4_K_M.gguf",
+        "answers": {
+          "animal": {
+            "type": "choice",
+            "choice": "dog",
+            "probabilities": {
+              "cat": 0.4555179036112144,
+              "dog": 0.5444820963887855
+            },
+            "confidence": 0.08896419277757106
+          },
+          "detail": {
+            "type": "score",
+            "score": 0.8753372044716335,
+            "probabilities": {
+              "0": 0.2946473196023055,
+              "1": 0.5353681563237555,
+              "2": 0.16998452407393905
+            },
+            "confidence": 0.3030522344856331,
+            "legend": {
+              "0": "Names a subject.",
+              "1": "Describes an action.",
+              "2": "Describes action and location."
+            }
+          },
+          "cat": {
+            "type": "noul",
+            "noul": 0.9456683365770501
+          }
+        }
+      },
+      "diagnostics": {
+        "model": "server:Qwen3-0.6B-Q4_K_M.gguf",
+        "generation": 2,
+        "load_ms": 1878.1300000026822,
+        "threads": 4,
+        "context": 4096,
+        "supports_images": false,
+        "hardware": {
+          "requested": {
+            "device": "cpu",
+            "threads": 4,
+            "gpuLayers": 0,
+            "context": 4096
+          },
+          "gpu_layers_offloaded": 0
+        },
+        "runtime": "wllama server browser",
+        "wllama_version": "3.6.1",
+        "evaluation_ms": 9972.854999996722,
+        "question_count": 3,
+        "llm_calls": 3,
+        "format_validated": true,
+        "readout_method": "candidate_token_logprobs_v1",
+        "confidence_method": "typesafe_adapter_e1d4cc9",
+        "normalizations": [],
+        "model_outputs": [
+          {
+            "question": "animal",
+            "raw_output": "B",
+            "output_tokens": 1,
+            "candidate_tokens": [
+              {
+                "label": "A",
+                "token": 32,
+                "logprob": -0.7872505187988281,
+                "probability": 0.4555179036112144
+              },
+              {
+                "label": "B",
+                "token": 33,
+                "logprob": -0.6088504791259766,
+                "probability": 0.5444820963887855
+              }
+            ]
+          },
+          {
+            "question": "detail",
+            "raw_output": "B",
+            "output_tokens": 1,
+            "candidate_tokens": [
+              {
+                "label": "A",
+                "token": 32,
+                "logprob": -1.2222621440887451,
+                "probability": 0.2946473196023055
+              },
+              {
+                "label": "B",
+                "token": 33,
+                "logprob": -0.6250866055488586,
+                "probability": 0.5353681563237555
+              },
+              {
+                "label": "C",
+                "token": 34,
+                "logprob": -1.7723338603973389,
+                "probability": 0.16998452407393905
+              }
+            ]
+          },
+          {
+            "question": "cat",
+            "raw_output": "A",
+            "output_tokens": 1,
+            "candidate_tokens": [
+              {
+                "label": "A",
+                "token": 32,
+                "logprob": -0.05611809715628624,
+                "probability": 0.9456683365770501
+              },
+              {
+                "label": "B",
+                "token": 33,
+                "logprob": -2.91290283203125,
+                "probability": 0.054331663422949796
+              }
+            ]
+          }
+        ],
+        "images": [],
+        "warnings": [
+          "確率は候補トークン間で正規化した値です。未校正であり、正答率ではありません。",
+          "confidenceは公式LLMアダプタの算式を参照しています。JEVモデルの精度・確率・完全な独立性は再現しません。",
+          "質問を直列に実行し、履歴を共有しません。"
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "browser": "145.0.7632.6"
+}

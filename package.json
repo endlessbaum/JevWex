@@ -8,7 +8,19 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/jev/*.test.ts",
     "build": "node scripts/build.mjs",
+    "build:web": "node scripts/build.mjs --web",
+    "start": "node scripts/start-server.mjs",
+    "test:server": "node --test tests/server/*.test.mjs",
+    "test:web": "node tests/web/smoke.mjs",
     "test:extension": "node tests/extension/smoke.mjs",
+    "test:extension:sites": "node tests/extension/sites.mjs",
+    "test:extension:capture": "node tests/extension/capture.mjs",
+    "test:extension:scope": "node tests/extension/content-scope.mjs",
+    "test:extension:repeated": "node tests/extension/repeated.mjs",
+    "test:extension:shared": "node tests/extension/shared-exclusions.mjs",
+    "test:extension:targets": "node tests/extension/target-rules.mjs",
+    "test:extension:page-images": "node tests/extension/page-images.mjs",
+    "test:extension:result-targets": "node tests/extension/result-targets.mjs",
     "test:extension:errors": "node tests/extension/error-recovery.mjs",
     "test:extension:download": "node tests/extension/download.mjs",
     "test:extension:repo": "node tests/extension/repo-download.mjs",
@@ -19,13 +31,13 @@
     "test:extension:readout": "node tests/extension/direct-readout.mjs"
   },
   "dependencies": {
-    "@wllama/wllama": "3.6.1"
+    "@wllama/wllama": "3.6.1",
+    "playwright": "1.58.2"
   },
   "devDependencies": {
     "@types/chrome": "0.1.24",
     "@types/node": "22.19.15",
     "esbuild": "0.25.12",
-    "playwright": "1.58.2",
     "prettier": "3.6.2",
     "tsx": "4.21.0",
     "typescript": "5.9.3"

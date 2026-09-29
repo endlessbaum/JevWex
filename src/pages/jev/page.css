@@ -6,6 +6,30 @@
   line-height: 1.65;
   color-scheme: light;
 }
+.site-url,
+#result-note {
+  overflow-wrap: anywhere;
+}
+#sites-page fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+#sites-page label {
+  margin: 12px 0;
+}
+.site-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.site-check input {
+  width: auto;
+}
+#site-error {
+  color: #9e2938;
+}
 * {
   box-sizing: border-box;
 }

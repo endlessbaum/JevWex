@@ -1,0 +1,18 @@
+{
+  "passed": [
+    "native side panel captures the live tab on opening without a stored action snapshot",
+    "repeated refresh reads changed content at the same URL without reopening the panel",
+    "switching tabs updates the URL and text automatically",
+    "full navigation and SPA URL changes replace the capture",
+    "a site without activeTab permission offers access recovery; declining does not capture or strand the button",
+    "a permission response arriving after a tab switch cannot overwrite the new page capture",
+    "refresh grants only the current host through real permissions.request, captures immediately, and works again without reopening",
+    "empty page content is explained instead of silently disabling evaluation",
+    "management tabs clear the source; returning to a readable web tab restores it"
+  ],
+  "errors": [],
+  "notRun": [
+    "ツールバーの実クリックによるactiveTab付与",
+    "Chromeのネイティブ許可ダイアログの実クリック（許可対象をテスト用Chromeのサイト設定に追加してから本物のpermissions.requestを実行）"
+  ]
+}

@@ -221,7 +221,15 @@ try {
     "https://huggingface.co/*",
     "https://us.aws.cdn.hf.co/*",
   ]);
-  ok("real MV3 CSP; no page errors, external requests, or new permissions");
+  assert.deepEqual(manifest.permissions, [
+    "activeTab",
+    "scripting",
+    "storage",
+    "sidePanel",
+  ]);
+  ok(
+    "real MV3 CSP; no page errors or external requests; explicit page-capture permissions",
+  );
 } catch (e) {
   report.failure = String(e);
   throw e;

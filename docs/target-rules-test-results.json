@@ -1,0 +1,12 @@
+{
+  "passed": [
+    "two criteria on one URL persist with separate targets, per-item processing and shared exclusions; reload restores both pairs",
+    "applying a target only changes the unsaved draft; cancelling the pair editor leaves saved criteria and target intact",
+    "saving an edited pair commits its target and criteria together without changing another pair",
+    "management edits the target visually and saves it with criteria while preserving other pairs",
+    "without the panel, each enabled criterion receives only its own saved target; a broken new-rule draft and incidental selection cannot override it",
+    "a missing target reports an error for that pair and remaining pairs still run against their own targets"
+  ],
+  "errors": [],
+  "note": "判定入力・条件の対応をテスト用応答で検証。モデル精度は対象外。"
+}

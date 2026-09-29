@@ -1,0 +1,14 @@
+{
+  "passed": [
+    "image-only repeated items preserve currentSrc and shared exclusions, skipping hidden images",
+    "standalone img captures without text; existing text targets do not gain image inputs",
+    "actual HTTP and embedded WebP decode to distinct PNG pixels for the VLM",
+    "ungranted thumbnail host fails explicitly before download",
+    "real permissions.request grants only the chosen CDN and CSP permits its image fetch (fixture response)",
+    "selecting img enables image mode, exposes exact CDN permission and saves target with criteria",
+    "cached LFM2.5-VL performs real image-only page judgments per item with panel closed"
+  ],
+  "errors": [],
+  "realModel": true,
+  "overlay": ":host{all:initial}*{box-sizing:border-box}.box{font:14px/1.6 system-ui,'Yu Gothic',sans-serif;color:#233c36;background:#fff;border:1px solid #b8cfc2;border-radius:14px;box-shadow:0 12px 48px #1236;max-height:calc(100vh - 32px);overflow:auto;padding:16px;overflow-wrap:anywhere}header{display:flex;align-items:center;justify-content:space-between;gap:12px}h2{font-size:16px;margin:0}h3{font-size:14px;margin:0 0 8px}p{margin:6px 0}button{font:inherit;padding:5px 10px;border:1px solid #bfd1c5;border-radius:6px;background:#f3f7f4;color:#23533f;cursor:pointer}.close{font-size:20px;padding:0 8px}section{border-top:1px solid #dce7e0;margin-top:12px;padding-top:12px}.value{font-size:20px;font-weight:700}.muted{font-size:12px;color:#607969}.error{color:#a1323d}JevWex · ページ判定×2件を個別に、1件の条件で判定しました。画像だけ1件目：thumbnail one判定基準1当てはまり 99.9%画像だけ2件目：thumbnail two判定基準1当てはまり 82.5%割合はモデルの候補間の重みで、正答率ではありません。"
+}

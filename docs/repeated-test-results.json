@@ -1,0 +1,13 @@
+{
+  "passed": [
+    "sibling cards are numbered separately; nested lists, hidden/empty rows and excluded children are handled; settings persist",
+    "parent controls switch between individual and combined processing, preserve exclusions, allow choosing the child group and restore the saved mode after reload",
+    "each item reaches inference alone; a failed item is shown separately and later items still complete",
+    "cancelling during item two preserves item one's result and never sends item three",
+    "103 items totaling over 500,000 characters can be captured, edited and saved; every item reaches inference independently and the final item result is shown",
+    "a missing repeated-item pattern blocks evaluation instead of reverting to a merged page",
+    "div-card candidates work too; equal text is not deduplicated and newly loaded siblings are captured on refresh"
+  ],
+  "errors": [],
+  "note": "入力の分離・失敗・中止の確認にはテスト用の判定応答を使用。JEV_TEST_MODEL指定時は実モデルによる3件の判定も別に検証。"
+}

@@ -5,13 +5,24 @@
   "cross_origin_embedder_policy": { "value": "require-corp" },
   "cross_origin_opener_policy": { "value": "same-origin" },
   "description": "WebAssemblyでローカルAIを動かすChrome拡張。文章や画像を自分の基準で判定・分類し、一括処理と結果の集計ができます。",
-  "action": { "default_title": "JevWexを開く" },
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "tabs", "scripting", "storage", "sidePanel"],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "action": { "default_title": "このページをJevWexで判定" },
+  "commands": {
+    "evaluate-page": {
+      "suggested_key": { "default": "Alt+Shift+J" },
+      "description": "このページをオンの条件で判定（結果をオーバーレイに表示）"
+    }
+  },
   "background": { "service_worker": "launch.js" },
+  "side_panel": { "default_path": "panel.html" },
+  "options_ui": { "page": "index.html#sites", "open_in_tab": true },
   "host_permissions": [
     "https://huggingface.co/*",
     "https://us.aws.cdn.hf.co/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; connect-src 'self' https://huggingface.co https://us.aws.cdn.hf.co;"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; connect-src 'self' https: http:;"
   }
 }

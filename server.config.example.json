@@ -1,0 +1,10 @@
+{
+  "model": "unsloth/Qwen3-0.6B-GGUF",
+  "projector": "",
+  "hardware": {
+    "device": "cpu",
+    "threads": "auto",
+    "gpuLayers": "all",
+    "context": 4096
+  }
+}

@@ -108,7 +108,11 @@ export async function evaluate(
     response: { model: snapshot.model, answers },
     diagnostics: {
       ...snapshot,
-      runtime: "wllama extension page",
+      runtime:
+        globalThis.location?.protocol === "http:" ||
+        globalThis.location?.protocol === "https:"
+          ? "wllama browser page"
+          : "wllama extension page",
       wllama_version: "3.6.1",
       evaluation_ms: performance.now() - start,
       question_count: Object.keys(request.questions).length,

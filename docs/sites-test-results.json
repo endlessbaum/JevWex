@@ -1,0 +1,20 @@
+{
+  "passed": [
+    "management retains independently saved URL rules",
+    "URL-matching conditions remain visible when off; switches persist and synchronize with management",
+    "panel creates validated criteria for the captured URL, saved on and shared with management; names render as text",
+    "all on conditions run sequentially on the management model; only the Web-page overlay shows results",
+    "overlay contents are excluded from subsequent page capture",
+    "the shortcut execution path works with no panel document and ignores off conditions without opening a panel",
+    "overlay cancellation works independently of the panel",
+    "SPA navigation cancels work and removes the old page overlay",
+    "full navigation also persists a terminal state without injecting into the replacement document",
+    "all-off produces a useful error in the overlay without inference",
+    "restricted pages report failure with an action badge instead of opening a panel"
+  ],
+  "errors": [],
+  "notRun": [
+    "OSのキー操作によるChromeショートカットイベント・activeTab付与（同じ実行処理をruntimeメッセージから検証）",
+    "ネイティブサイドパネル内の操作（専用panel.htmlを通常タブで検証）"
+  ]
+}

@@ -226,3 +226,12 @@ footer {
 [hidden] {
   display: none !important;
 }
+.link-excerpt-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 240px;
+  overflow: auto;
+  padding: 10px;
+  background: #f2f6f3;
+  font: 12px/1.6 system-ui;
+}

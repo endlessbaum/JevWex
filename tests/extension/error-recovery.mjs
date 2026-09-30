@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import { chromium } from "playwright";
 import { resolve } from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -31,28 +32,28 @@ try {
     report.passed.push(name);
     console.log("PASS", name);
   };
-  await page
-    .locator("#files")
-    .setInputFiles({
-      name: "empty.gguf",
-      mimeType: "application/octet-stream",
-      buffer: Buffer.alloc(0),
-    });
+  await page.locator("#files").setInputFiles({
+    name: "empty.gguf",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.alloc(0),
+  });
   assert.match(await page.locator("#error").textContent(), /空でないGGUF/);
   ok("empty local file shows readable validation error");
-  await page
-    .locator("#files")
-    .setInputFiles({
-      name: "broken.gguf",
-      mimeType: "application/octet-stream",
-      buffer: Buffer.from("invalid gguf"),
-    });
-  await page.locator("#load").click();
+  await page.locator("#files").setInputFiles({
+    name: "broken.gguf",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from("invalid gguf"),
+  });
+  await loadModel(page);
   await page.waitForFunction(() => !document.querySelector("#error").hidden);
   assert.equal(await page.locator("#run").isDisabled(), true);
+  const loadError = await page.locator("#error").textContent();
+  report.errors.push(loadError);
+  assert.doesNotMatch(loadError, /チャットテンプレートがありません/);
+  assert.match(loadError, /failed|error|初期化に失敗/i);
   ok("invalid GGUF fails without enabling evaluation");
   await page.locator("#files").setInputFiles(process.env.JEV_TEST_MODEL);
-  await page.locator("#load").click();
+  await loadModel(page);
   await navigate(page, "judge");
   await page.locator("#state").fill("editable during load");
   await page.waitForFunction(
@@ -69,7 +70,7 @@ try {
     { timeout: 120000 },
   );
   report.errors.push(await page.locator("#error").textContent());
-  assert.match(report.errors.at(-1), /処理できる長さ/);
+  assert.match(report.errors.at(-1), /処理できる量/);
   ok("context overflow has plain-language explanation");
   await page.locator("#state").fill("The cat sleeps.");
   report.result = (await runEvaluation(page)).response;

@@ -8,7 +8,12 @@ import {
   type Snapshot,
 } from "../features/jev/types";
 import { validateRequest } from "../features/jev/validate";
-import { DEFAULT_LOAD, sameHardware, type ResolvedHardware } from "./hardware";
+import {
+  DEFAULT_LOAD,
+  sameHardware,
+  projectorOffload,
+  type ResolvedHardware,
+} from "./hardware";
 import { validateImageFiles, type InputImage } from "../features/jev/images";
 import { readAnswerTokens, type AnswerToken } from "./answer-tokens";
 export interface ModelEntry {
@@ -25,6 +30,8 @@ export type Runtime = Pick<
     getLoadedContextInfo(): { n_ctx: number; has_image_input?: boolean };
   };
 export class ModelSession {
+  // Settings are snapshotted at the start of each operation.
+  timeouts = { loadSeconds: 180, responseSeconds: 0 };
   readonly models = new Map<string, ModelEntry>();
   selected = "";
   loaded: Snapshot | null = null;
@@ -70,6 +77,10 @@ export class ModelSession {
     if (!entry)
       throw new JevError("INVALID_REQUEST", "登録済みモデルを選択してください");
     const requested = { ...settings };
+    const loadSeconds = this.timeouts.loadSeconds;
+    const loadErrors: string[] = [];
+    const loadFailure = (message: string) =>
+      new JevError("LOAD_FAILED", [message, ...loadErrors].join("\n"));
     this.transition = true;
     try {
       await this.stop();
@@ -91,6 +102,16 @@ export class ModelSession {
             /offloaded\s+(\d+)\/\d+\s+layers?\s+to GPU/i,
           );
           if (match) offloaded = Number(match[1]);
+          for (const line of text.split(/\r?\n/)) {
+            if (
+              /error|fail(?:ed|ure)?|out of memory|unsupported|cannot|could not/i.test(
+                line,
+              )
+            ) {
+              loadErrors.push(line.slice(0, 600));
+              if (loadErrors.length > 8) loadErrors.shift();
+            }
+          }
         });
       this.runtime = runtime;
       // ctx_shift=false: oversized input must fail, never silently discard state.
@@ -101,7 +122,7 @@ export class ModelSession {
             n_ctx: requested.context,
             n_threads: requested.threads,
             n_gpu_layers: requested.gpuLayers,
-            mmproj_offload: requested.device === "webgpu",
+            mmproj_offload: projectorOffload(requested),
             n_parallel: 1,
             ctx_shift: false,
           }),
@@ -111,16 +132,23 @@ export class ModelSession {
                 reject(
                   new JevError(
                     "RUNTIME_UNAVAILABLE",
-                    "モデル初期化が180秒以内に完了しませんでした。このブラウザ・モデルは利用できない可能性があります。",
+                    `モデル初期化が${loadSeconds}秒以内に完了しませんでした。ハードウェア設定で読み込みの待ち時間を延ばせます。`,
                   ),
                 ),
-              180000,
+              loadSeconds * 1000,
             );
           }),
         ]);
       } finally {
         clearTimeout(timer);
       }
+      const contextInfo = runtime.getLoadedContextInfo();
+      // Wllama 3.6.1 can resolve loadModel after native initialization fails.
+      // Its empty context then has no template either; diagnose the load first.
+      if (!Number.isSafeInteger(contextInfo.n_ctx) || contextInfo.n_ctx <= 0)
+        throw loadFailure(
+          "モデルの初期化に失敗しました。次の読み込みログを確認してください。",
+        );
       if (!runtime.getChatTemplate())
         throw new JevError(
           "MODEL_UNSUPPORTED",
@@ -134,9 +162,8 @@ export class ModelSession {
         generation: ++this.generation,
         load_ms: performance.now() - start,
         threads: runtime.getNumThreads(),
-        context: runtime.getLoadedContextInfo().n_ctx,
-        supports_images:
-          runtime.getLoadedContextInfo().has_image_input === true,
+        context: contextInfo.n_ctx,
+        supports_images: contextInfo.has_image_input === true,
         hardware: { requested, gpu_layers_offloaded: offloaded },
       };
       this.loadedEntry = entry;
@@ -145,10 +172,7 @@ export class ModelSession {
       await this.release();
       this.phase = "error";
       if (error instanceof JevError) throw error;
-      throw new JevError(
-        "LOAD_FAILED",
-        error instanceof Error ? error.message : String(error),
-      );
+      throw loadFailure(error instanceof Error ? error.message : String(error));
     } finally {
       this.transition = false;
       this.notify();
@@ -200,6 +224,17 @@ export class ModelSession {
     const abort = () => controller.abort();
     signal?.addEventListener("abort", abort, { once: true });
     if (signal?.aborted) abort();
+    const responseSeconds = this.timeouts.responseSeconds;
+    let timedOut = false;
+    const timer =
+      responseSeconds > 0
+        ? setTimeout(() => {
+            if (!controller.signal.aborted) {
+              timedOut = true;
+              controller.abort();
+            }
+          }, responseSeconds * 1000)
+        : undefined;
     this.phase = "running";
     const promise = evaluate(
       this.runtime,
@@ -218,9 +253,15 @@ export class ModelSession {
         return result;
       })
       .catch((e) => {
+        if (timedOut)
+          throw new JevError(
+            "TIMEOUT",
+            `判定が${responseSeconds}秒以内に完了しませんでした。ハードウェア設定で応答の待ち時間を延ばせます。`,
+          );
         throw asJevError(e);
       })
       .finally(() => {
+        clearTimeout(timer);
         signal?.removeEventListener("abort", abort);
         this.current = undefined;
         this.phase = this.loaded ? "ready" : "empty";

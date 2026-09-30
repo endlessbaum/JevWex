@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
@@ -130,7 +131,7 @@ try {
     await navigate(page, "models");
     await context.setOffline(true);
     await page.locator("#files").setInputFiles(process.env.JEV_TEST_MODEL);
-    await page.locator("#load").click();
+    await loadModel(page);
     await page.waitForFunction(
       () =>
         !document.querySelector("#run").disabled ||
@@ -201,7 +202,7 @@ try {
     assert.match(await page.locator("#error").textContent(), /ラベルが重複/);
     ok("duplicate labels show a plain-language validation error");
     await navigate(page, "models");
-    await page.locator("#unload").click();
+    await page.locator('[data-model-action="unload"]:visible').click();
     await page.waitForFunction(() => document.querySelector("#run").disabled);
     await navigate(page, "judge");
     assert.match(await page.locator("#judge-model").textContent(), /未準備/);
@@ -223,6 +224,7 @@ try {
   ]);
   assert.deepEqual(manifest.permissions, [
     "activeTab",
+    "tabs",
     "scripting",
     "storage",
     "sidePanel",

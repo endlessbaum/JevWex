@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import { openStandaloneScopeEditor } from "./scope-editor-helper.mjs";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
@@ -419,7 +420,7 @@ try {
     const manager = await context.newPage();
     await manager.goto(`chrome-extension://${id}/index.html#models`);
     await manager.locator("#files").setInputFiles(process.env.JEV_TEST_MODEL);
-    await manager.locator("#load").click();
+    await loadModel(manager);
     await source.bringToFront();
     await panel.waitForFunction(
       () => !document.querySelector("#run").disabled,

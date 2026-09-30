@@ -1,5 +1,15 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+export function modelRow(page, id) {
+  return id
+    ? page.locator(`#models > li[data-model-id=${JSON.stringify(id)}]`)
+    : page.locator("#models > li").last();
+}
+export async function loadModel(page, id) {
+  const row = modelRow(page, id);
+  if ((await row.getAttribute("data-active")) !== "true")
+    await row.locator('[data-model-action="load"]').click();
+}
 export async function navigate(page, destination) {
   await page.locator(`#nav-${destination}`).click();
   await page

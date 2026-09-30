@@ -1,5 +1,6 @@
 import "./page.css";
 import { BatchPage } from "./batch-page";
+import { ModelList } from "./model-list";
 import { ServerPage } from "../../server/status-page";
 import { SitePage } from "./site-page";
 import { ManagerBridge } from "../../extension/judge-channel";
@@ -16,9 +17,22 @@ import {
   type InputImage,
 } from "../../features/jev/images";
 import { ModelManager } from "@wllama/wllama";
-import { ModelSession } from "../../inference/model-session";
+import { DecisionSession } from "../../inference/decision-session";
+import { CloudModels } from "./cloud-models";
+import { evaluateStoredCloud } from "../../extension/cloud-client";
 import { createRuntime } from "../../inference/wllama-assets";
-import { readLastModel, saveLastModel } from "../../inference/last-model";
+import {
+  readLastModel,
+  saveLastModel,
+  LAST_MODEL_STORAGE_KEY,
+} from "../../inference/last-model";
+import { removeCachedModel } from "../../inference/model-removal";
+import {
+  chooseStartupModel,
+  readRuntimeSettings,
+  validateRuntimeSettings,
+  RUNTIME_SETTINGS_KEY,
+} from "../../inference/runtime-settings";
 import {
   ModelDownload,
   EXAMPLE_MODEL_URL,
@@ -70,16 +84,66 @@ let result:
   | undefined;
 let operating = false,
   started = 0;
+let cloudWasActive = false;
+let cloudModels: CloudModels | undefined;
+let deletingModel = false;
+let deletingModelId: string | undefined;
+let loadingModelId: string | undefined;
 let hardware = readHardware(localStorage);
 const lastModel = readLastModel(localStorage);
 let startupOverridden = false;
 let capabilities: HardwareCapabilities | undefined;
-const session = new ModelSession(createRuntime, renderSession);
+const session = new DecisionSession(
+  createRuntime,
+  renderSession,
+  undefined,
+  __JEVWEX_WEB__ ? undefined : evaluateStoredCloud,
+);
+let runtimeSettings = readRuntimeSettings(localStorage);
+session.timeouts = {
+  loadSeconds: runtimeSettings.loadSeconds,
+  responseSeconds: runtimeSettings.responseSeconds,
+};
 const modelManager = new ModelManager({
   allowOffline: true,
   parallelDownloads: 1,
 });
 const download = new ModelDownload(modelManager);
+const modelList = new ModelList(
+  $("models"),
+  (operation, id) => {
+    if (operation === "remove") void action(() => removeModel(id));
+    else if (
+      operation === "load" &&
+      session.cloud &&
+      session.local.loaded?.model === id
+    )
+      void action(() => {
+        if (modelOperationBusy()) return;
+        session.useLocal();
+        startupOverridden = true;
+        edited();
+      });
+    else void action(() => operateModel(operation, id));
+  },
+  (operation, id) => cloudModels?.handle(operation, id),
+);
+cloudModels = new CloudModels(
+  __JEVWEX_WEB__,
+  session,
+  modelOperationBusy,
+  (busy) => {
+    operating = busy;
+    renderSession();
+  },
+  renderSession,
+  () => {
+    startupOverridden = true;
+    edited();
+  },
+  action,
+  showError,
+);
 
 function route(focus = false) {
   const current =
@@ -128,6 +192,11 @@ function route(focus = false) {
 window.addEventListener("hashchange", () => route(true));
 
 function renderSession() {
+  if (cloudWasActive && !session.cloud) {
+    $<HTMLInputElement>("cloud-key").value = "";
+    $("cloud-status").textContent = "ローカルモデルを選択しました。";
+  }
+  cloudWasActive = !!session.cloud;
   managerBridge?.publish();
   const labels = {
     empty: "準備待ち",
@@ -138,14 +207,12 @@ function renderSession() {
     error: "エラー",
   };
   $("status").textContent = labels[session.phase];
-  const selected = session.models.get(session.selected),
-    loaded = session.loaded;
+  const loaded = session.loaded;
   const loadedName = loaded
-    ? (session.models.get(loaded.model)?.label ?? "選択したモデル")
+    ? session.cloud
+      ? `JEV互換API：${cloudModels?.profiles.find((p) => p.id === session.cloud?.profileId)?.name ?? session.cloud.model} / ${session.cloud.model}`
+      : (session.models.get(loaded.model)?.label ?? "選択したモデル")
     : "";
-  $("selection").textContent = selected
-    ? `${selected.label} / ${selected.size < 0 ? "サイズ不明" : (selected.size / 1048576).toFixed(1) + " MiB"}`
-    : "モデルを選択してください。";
   $("loaded").textContent = loaded
     ? `準備完了：${loadedName}`
     : session.phase === "loading"
@@ -156,12 +223,23 @@ function renderSession() {
     ? hardwareSummary()
     : "モデル管理でモデルを追加し、読み込んでください。";
   $("model-dot").classList.toggle("ready", !!loaded);
+  const cloud = session.cloud;
+  $("external-transmission-warning").hidden = !cloud;
+  $("external-transmission-destination").textContent = cloud
+    ? new URL(cloud.endpoint).origin
+    : "";
+  $("privacy-note").textContent = cloud
+    ? "API利用中：文章と判定基準を外部サイトへ送信します。"
+    : "入力した文章と画像はこの端末で処理します。";
+  $("privacy-note").classList.toggle("cloud-warning-note", !!cloud);
+  $("run-hint").classList.toggle("cloud-warning-note", !!cloud);
   $("run-hint").textContent = loaded
-    ? "入力した文章と画像はこの端末で処理します。"
+    ? session.cloud
+      ? `外部送信：文章と判定基準を ${new URL(session.cloud.endpoint).origin} に送信します。${session.cloud.fallback ? "失敗時はローカルで判定します。画像はローカルのみで処理します。" : "フォールバックは無効です。"}`
+      : "入力した文章と画像はこの端末で処理します。"
     : "モデルを準備すると判定できます。";
-  $<HTMLButtonElement>("load").disabled =
-    operating || !selected || !capabilities;
-  $<HTMLButtonElement>("unload").disabled = operating || !loaded;
+  renderModels();
+  $<HTMLInputElement>("files").disabled = deletingModel;
   $<HTMLButtonElement>("run").disabled =
     operating || readingImages || !loaded || session.phase !== "ready";
   $<HTMLButtonElement>("cancel").disabled =
@@ -178,11 +256,18 @@ function renderSession() {
       ? "現在のモデルは文章専用です。画像を判定するには、画像対応モデルと画像用ファイルを読み込んでください。"
       : "画像対応モデルを準備すると、画像を使って判定できます。";
   $("hardware-current").textContent = hardwareSummary();
+  cloudModels?.render();
   $<HTMLButtonElement>("hardware-save").disabled = !capabilities;
   $<HTMLButtonElement>("hardware-apply").disabled =
-    !capabilities || operating || !loaded || session.phase !== "ready";
+    !capabilities ||
+    operating ||
+    !loaded ||
+    !!session.cloud ||
+    session.phase !== "ready";
 }
 function hardwareSummary() {
+  if (session.cloud)
+    return `JEV互換API / ${session.cloud.fallback ? "失敗時にローカルへフォールバック" : "フォールバックなし"}`;
   const loaded = session.loaded;
   if (!loaded) return "モデルはまだ読み込まれていません。";
   const info = loaded.hardware;
@@ -194,7 +279,13 @@ function hardwareSummary() {
           ? `GPU ${info.gpu_layers_offloaded}層`
           : "GPU使用なし（CPUで動作）"
       : "CPU";
-  return `${gpu} / CPU ${loaded.threads}スレッド / 文章量 ${loaded.context.toLocaleString()}`;
+  const projector = loaded.supports_images
+    ? info?.requested.device === "webgpu" &&
+      info.requested.mmprojDevice !== "cpu"
+      ? " / mmproj GPUを要求"
+      : " / mmproj CPU"
+    : "";
+  return `${gpu} / CPU ${loaded.threads}スレッド / 文章量 ${loaded.context.toLocaleString()}${projector}`;
 }
 function resolvedHardware() {
   if (!capabilities)
@@ -204,24 +295,31 @@ function resolvedHardware() {
     );
   return resolveHardware(hardware, capabilities);
 }
-async function loadAndRemember(id: string) {
+async function loadAndRemember(id: string, remember = true) {
+  loadingModelId = id;
   $("startup-status").textContent = "モデルを読み込んでいます…";
   try {
     await session.load(id, resolvedHardware());
   } catch (error) {
     $("startup-status").textContent = "";
     throw error;
+  } finally {
+    loadingModelId = undefined;
+    renderModels();
   }
   const entry = session.models.get(id)!;
-  const saved = saveLastModel(localStorage, { id, label: entry.label });
+  const saved =
+    !remember || saveLastModel(localStorage, { id, label: entry.label });
   $("startup-status").textContent = !saved
     ? "モデルは準備できましたが、前回のモデル情報を保存できませんでした。"
     : id.startsWith("cache:")
-      ? "次回はこのモデルを保存済みのハードウェア設定で自動的に読み込みます。"
+      ? "モデルを準備しました。次回の読み込みはハードウェア設定の「起動時のモデルと待ち時間」に従います。"
       : "最後に使ったモデル名と設定を保存しました。端末のファイルは次回も選択してください。";
   return saved;
 }
 function populateHardware(settings: HardwareSettings) {
+  $<HTMLSelectElement>("hardware-mmproj").value =
+    settings.mmprojDevice ?? "auto";
   $<HTMLSelectElement>("hardware-device").value = settings.device;
   const threads = $<HTMLSelectElement>("hardware-threads");
   if (
@@ -249,6 +347,7 @@ function populateHardware(settings: HardwareSettings) {
 }
 function saveHardware() {
   const next = validateHardware({
+    mmprojDevice: value("hardware-mmproj"),
     device: value("hardware-device"),
     threads:
       value("hardware-threads") === "auto"
@@ -275,6 +374,7 @@ function saveHardware() {
 }
 for (const id of [
   "hardware-device",
+  "hardware-mmproj",
   "hardware-threads",
   "hardware-layers",
   "hardware-context",
@@ -310,6 +410,70 @@ $("hardware-apply").onclick = () =>
     }
   });
 populateHardware(hardware);
+function populateFallbackModels(selected = value("runtime-fallback")) {
+  const select = $<HTMLSelectElement>("runtime-fallback");
+  select.replaceChildren(new Option("保存済みで最も小さいモデル", ""));
+  for (const entry of session.models.values()) {
+    if (entry.id.startsWith("cache:"))
+      select.add(
+        new Option(
+          `${entry.label} / ${entry.size > 0 ? (entry.size / 1024 ** 3).toFixed(2) + " GiB" : "サイズ不明"}`,
+          entry.id,
+        ),
+      );
+  }
+  if (
+    selected &&
+    !Array.from(select.options).some((option) => option.value === selected)
+  )
+    select.add(
+      new Option(
+        "指定したモデル（保存済みファイルが見つかりません）",
+        selected,
+      ),
+    );
+  select.value = selected;
+}
+$<HTMLSelectElement>("runtime-startup").value = runtimeSettings.startup;
+$<HTMLInputElement>("runtime-max-size").value = String(
+  runtimeSettings.maxAutoLoadGiB,
+);
+$<HTMLInputElement>("runtime-load-seconds").value = String(
+  runtimeSettings.loadSeconds,
+);
+$<HTMLInputElement>("runtime-response-seconds").value = String(
+  runtimeSettings.responseSeconds,
+);
+populateFallbackModels(runtimeSettings.fallbackModel);
+$("runtime-save").onclick = () =>
+  void action(() => {
+    const next = validateRuntimeSettings({
+      startup: value("runtime-startup"),
+      maxAutoLoadGiB: Number(value("runtime-max-size")),
+      fallbackModel: value("runtime-fallback"),
+      loadSeconds: Number(value("runtime-load-seconds")),
+      responseSeconds: Number(value("runtime-response-seconds")),
+    });
+    localStorage.setItem(RUNTIME_SETTINGS_KEY, JSON.stringify(next));
+    runtimeSettings = next;
+    session.timeouts = {
+      loadSeconds: next.loadSeconds,
+      responseSeconds: next.responseSeconds,
+    };
+    managerBridge?.publish();
+    $("runtime-status").textContent =
+      "保存しました。起動設定は次回、待ち時間は次の処理から反映します。";
+  });
+for (const id of [
+  "runtime-startup",
+  "runtime-max-size",
+  "runtime-fallback",
+  "runtime-load-seconds",
+  "runtime-response-seconds",
+])
+  $(id).addEventListener("input", () => {
+    $("runtime-status").textContent = "未保存の変更があります。";
+  });
 const hardwareReady = detectHardware().then((caps) => {
   capabilities = caps;
   $("hardware-cpu").textContent =
@@ -387,7 +551,7 @@ function renderResult(
 ) {
   result = { evaluation: data, input, presentation };
   $("result-note").textContent =
-    `判定が完了しました（${(data.diagnostics.evaluation_ms / 1000).toFixed(1)}秒）。割合はモデルの重みを正規化した値で、正答率ではありません。`;
+    `判定が完了しました（${(data.diagnostics.evaluation_ms / 1000).toFixed(1)}秒）。使用モデル：${data.response.model}。${data.diagnostics.fallback ? `ローカルへフォールバック：${data.diagnostics.fallback.reason}` : data.diagnostics.provider === "jev" ? "確率はクラウドAPIの返却値です。" : "割合はモデルの重みを正規化した値です。"} 正答率ではありません。`;
   $("results").replaceChildren();
   for (const [id, answer] of Object.entries(data.response.answers)) {
     const meta = presentation[id];
@@ -447,12 +611,34 @@ function cacheLabel(url: string) {
   return decodeURIComponent(new URL(url).pathname.split("/").at(-1)!);
 }
 function refreshModels() {
-  const select = $<HTMLSelectElement>("models");
-  select.replaceChildren(new Option("モデルを選択してください", ""));
-  for (const entry of session.models.values())
-    select.add(new Option(entry.label, entry.id));
-  select.value = session.selected;
+  populateFallbackModels();
   renderSession();
+}
+function modelOperationBusy() {
+  return (
+    operating ||
+    download.busy ||
+    !!batchPage?.busy ||
+    ["loading", "running", "stopping"].includes(session.phase)
+  );
+}
+function renderModels() {
+  $("models-empty").hidden =
+    session.models.size > 0 || !!cloudModels?.profiles.length;
+  modelList.render(session.models.values(), {
+    loadedId: session.local.loaded?.model,
+    standby: !!session.cloud,
+    loadingId: loadingModelId,
+    deletingId: deletingModelId,
+    phase: session.phase,
+    busy: modelOperationBusy() || $<HTMLButtonElement>("download").disabled,
+    canLoad: !!capabilities,
+  });
+  modelList.renderCloud(
+    cloudModels?.profiles ?? [],
+    session.cloud?.profileId,
+    modelOperationBusy() || !!cloudModels?.loading,
+  );
 }
 $("files").addEventListener(
   "change",
@@ -480,29 +666,96 @@ $("files").addEventListener(
       edited();
     }),
 );
-$("models").addEventListener("change", () => {
-  session.selected = value("models");
+async function removeModel(id: string) {
+  $("model-remove-status").textContent = "";
+  const entry = session.models.get(id);
+  if (
+    !entry ||
+    operating ||
+    download.busy ||
+    batchPage?.busy ||
+    ["loading", "running", "stopping"].includes(session.phase)
+  )
+    return;
+  const local = Array.isArray(entry.source);
+  const message = local
+    ? `「${entry.label}」を一覧から削除しますか？ 端末の元ファイルは削除しません。`
+    : `「${entry.label}」をブラウザの保存領域から削除しますか？ 再度使う場合はダウンロードが必要です。ほかのモデルと共有している画像用ファイルは残します。`;
+  if (
+    !confirm(
+      message +
+        (session.local.loaded?.model === entry.id
+          ? " 現在のモデルの使用も終了します。"
+          : ""),
+    )
+  )
+    return;
+  deletingModel = true;
+  deletingModelId = id;
+  operating = true;
+  downloadControls(true);
+  state.cancel();
   edited();
   renderSession();
-});
-for (const id of ["load", "unload"])
-  $(id).onclick = () =>
-    void action(async () => {
-      if (operating) return;
-      operating = true;
-      state.cancel();
-      edited();
-      renderSession();
-      started = performance.now();
-      try {
-        if (id === "load") await loadAndRemember(session.selected);
-        else await session.unload();
-      } finally {
-        operating = false;
-        started = 0;
-        renderSession();
-      }
-    });
+  $("model-remove-status").textContent = "削除しています…";
+  try {
+    if (session.local.loaded?.model === entry.id) await session.unload();
+    const removed = !Array.isArray(entry.source)
+      ? await removeCachedModel(modelManager.cacheManager, entry.source)
+      : undefined;
+    session.models.delete(entry.id);
+    if (session.selected === entry.id)
+      session.selected = session.loaded?.model ?? "";
+    $<HTMLInputElement>("files").value = "";
+    if (readLastModel(localStorage)?.id === entry.id)
+      localStorage.removeItem(LAST_MODEL_STORAGE_KEY);
+    if (runtimeSettings.fallbackModel === entry.id) {
+      runtimeSettings = { ...runtimeSettings, fallbackModel: "" };
+      localStorage.setItem(
+        RUNTIME_SETTINGS_KEY,
+        JSON.stringify(runtimeSettings),
+      );
+    }
+    if (value("runtime-fallback") === entry.id)
+      $<HTMLSelectElement>("runtime-fallback").value = "";
+    $("startup-status").textContent = "";
+    $("model-remove-status").textContent = local
+      ? "一覧から削除しました。端末の元ファイルは残っています。"
+      : `保存済みモデルを削除しました。${removed?.sharedProjector ? "共有の画像用ファイルは残しています。" : ""}`;
+  } catch (error) {
+    $("model-remove-status").textContent =
+      "削除を完了できませんでした。エラーを確認して再度お試しください。";
+    throw error;
+  } finally {
+    deletingModel = false;
+    deletingModelId = undefined;
+    operating = false;
+    downloadControls(false);
+    refreshModels();
+  }
+}
+async function operateModel(operation: "load" | "unload", id: string) {
+  if (
+    modelOperationBusy() ||
+    !session.models.has(id) ||
+    (operation === "unload" && session.local.loaded?.model !== id)
+  )
+    return;
+  session.selected = id;
+  operating = true;
+  state.cancel();
+  edited();
+  renderSession();
+  started = performance.now();
+  try {
+    if (operation === "load") await loadAndRemember(id);
+    else await session.unload();
+  } finally {
+    operating = false;
+    started = 0;
+    renderSession();
+  }
+}
 $("run").onclick = () =>
   void action(async () => {
     if (session.phase !== "ready" || operating) return;
@@ -644,22 +897,21 @@ void Promise.all([hardwareReady, modelsReady])
         "前回のモデルを確認できませんでした。モデル管理でモデルを選択してください。";
       return;
     }
-    if (!session.models.has(lastModel.id)) {
-      $("startup-status").textContent = lastModel.id.startsWith("local:")
-        ? `前回使用：${lastModel.label}。モデル管理で同じ端末のファイルを選択してください。設定は保存されています。`
-        : `前回使用：${lastModel.label}。保存済みファイルが見つかりません。モデル管理で再度追加してください。`;
-      return;
-    }
-    session.selected = lastModel.id;
+    const startup = chooseStartupModel(runtimeSettings, lastModel.id, [
+      ...session.models.values(),
+    ]);
+    $("startup-status").textContent = startup.message;
+    if (!startup.model) return;
+    const startupModel = startup.model;
+    session.selected = startupModel.id;
     operating = true;
     started = performance.now();
     refreshModels();
-    $("startup-status").textContent =
-      `前回のモデル「${lastModel.label}」を自動で読み込んでいます…`;
+    $("startup-status").textContent = `${startup.message} 読み込み中…`;
     try {
-      if (await loadAndRemember(lastModel.id))
+      if (await loadAndRemember(startupModel.id, false))
         $("startup-status").textContent =
-          "前回のモデルを読み込みました。すぐに判定できます。";
+          `${startup.message}「${startupModel.label}」を読み込みました。`;
     } catch (error) {
       $("startup-status").textContent =
         `自動読み込みができませんでした。モデル管理またはハードウェア設定を確認してください：${asJevError(error).message}`;
@@ -682,7 +934,8 @@ function downloadControls(busy: boolean) {
     "download-projector",
   ])
     $<HTMLInputElement>(id).disabled = busy;
-  $<HTMLButtonElement>("download-cancel").disabled = !busy;
+  $<HTMLButtonElement>("download-cancel").disabled = !busy || deletingModel;
+  renderModels();
 }
 $("download-example").onclick = () => {
   $<HTMLInputElement>("download-url").value = EXAMPLE_MODEL_URL;
@@ -815,7 +1068,7 @@ batchPage = new BatchPage({
 if (__JEVWEX_WEB__) serverPage = new ServerPage();
 else {
   document.querySelector("footer")!.textContent =
-    "判定は端末内で行います。保存したURL・条件はこの拡張内に残ります。取得したページ内容はブラウザ終了まで一時保持し、判定結果は自動保存しません。";
+    "既定は端末内で判定します。JEV互換APIを選ぶと文章・判定基準を設定した送信先へ送ります。保存したURL・条件は拡張内に残り、ページ内容はブラウザ終了まで一時保持します。結果は自動保存しません。";
   sitePage = new SitePage(() => editor.read());
   const manage = (destination: "models" | "sites", url?: string) => {
     if (url) {
@@ -833,6 +1086,9 @@ else {
   };
   managerBridge = new ManagerBridge({
     status: () => ({
+      responseSeconds: runtimeSettings.responseSeconds,
+      cloudSeconds: session.cloud?.timeoutSeconds,
+      inputContext: session.local.loaded?.context ?? hardware.context,
       supportsImages: session.loaded?.supports_images === true,
       ready:
         !operating &&
@@ -840,8 +1096,10 @@ else {
         session.phase === "ready" &&
         !!session.loaded,
       model: session.loaded
-        ? (session.models.get(session.loaded.model)?.label ??
-          "読み込み済みモデル")
+        ? session.cloud
+          ? `クラウド：${session.cloud.model}（文章の送信先：${new URL(session.cloud.endpoint).origin}）`
+          : (session.models.get(session.loaded.model)?.label ??
+            "読み込み済みモデル")
         : "",
       phase:
         session.phase === "loading"

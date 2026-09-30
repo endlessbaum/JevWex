@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
@@ -58,7 +59,7 @@ try {
   await context.setOffline(true);
   await navigate(page, "models");
   await page.locator("#files").setInputFiles(process.env.JEV_TEST_MODEL);
-  await page.locator("#load").click();
+  await loadModel(page);
   await page.waitForFunction(
     () =>
       !document.querySelector("#run").disabled ||

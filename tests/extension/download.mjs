@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import {
   navigate,
   fillSingleCriterion,
@@ -61,7 +62,7 @@ try {
     await page.locator("#download-status").textContent(),
     /中止しました/,
   );
-  assert.equal(await page.locator("#models option").count(), 1);
+  assert.equal(await page.locator("#models > li").count(), 0);
   ok("real download cancel never registers partial model");
   await page.locator("#download").click();
   await page.waitForFunction(
@@ -73,15 +74,21 @@ try {
     await page.locator("#download-status").textContent(),
     /保存完了/,
   );
-  assert.equal(await page.locator("#models option").count(), 2);
+  assert.equal(await page.locator("#models > li").count(), 1);
   ok("real HTTPS download and OPFS cache completed");
-  const selected = await page.locator("#models").inputValue();
+  const selected = await page
+    .locator("#models > li")
+    .last()
+    .getAttribute("data-model-id");
   await context.setOffline(true);
   await page.reload();
   await page.waitForFunction(
-    () => document.querySelector("#models").options.length === 2,
+    () => document.querySelectorAll("#models > li").length === 1,
   );
-  await page.locator("#models").selectOption(selected);
+  assert.equal(
+    await page.locator("#models > li").first().getAttribute("data-model-id"),
+    selected,
+  );
   ok("downloaded model survives reload while offline");
   const before = report.requests.length;
   await navigate(page, "models");
@@ -96,7 +103,7 @@ try {
   );
   assert.equal(report.requests.length, before);
   ok("duplicate download reuses cache without network");
-  await page.locator("#load").click();
+  await loadModel(page);
   await page.waitForFunction(
     () => !document.querySelector("#run").disabled,
     null,

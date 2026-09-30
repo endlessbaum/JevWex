@@ -1,6 +1,7 @@
 import { captureTab, type PageCapture } from "./capture";
 import {
   JUDGE_CHANNEL,
+  managerResponseTimeoutMs,
   type JudgeMessage,
   type ManagerStatus,
   type WebRequest,
@@ -8,6 +9,7 @@ import {
 } from "./judge-channel";
 import { matchingRules, readRules } from "./site-rules";
 import { showOverlay, summarizeResult, type OverlayData } from "./overlay";
+import { linkCharacterLimit, linkInput, loadLinkExcerpts } from "./page-links";
 
 export const jobKey = (tabId: number) => `jev-page-job:${tabId}`;
 export type CaptureMode = "auto" | "text" | "selection";
@@ -17,11 +19,12 @@ export function pageInputs(capture: PageCapture, mode: CaptureMode) {
     (mode === "auto" && !capture.items && !!capture.selection);
   if (!selection && capture.items)
     return capture.items.map(
-      ({ text, truncated, images, target, ...item }) => ({
+      ({ text, truncated, images, links, target, ...item }) => ({
         text,
         truncated,
         ...(target ? { target } : {}),
         ...(images ? { images } : {}),
+        ...(links ? { links } : {}),
         item,
       }),
     );
@@ -32,6 +35,7 @@ export function pageInputs(capture: PageCapture, mode: CaptureMode) {
       item: undefined,
       ...(!selection && capture.target ? { target: capture.target } : {}),
       ...(!selection && capture.images ? { images: capture.images } : {}),
+      ...(!selection && capture.links ? { links: capture.links } : {}),
     },
   ];
 }
@@ -106,10 +110,10 @@ class InferenceClient {
       () =>
         this.pending?.reject(
           new InferenceUnavailable(
-            "判定が時間内に完了しませんでした。文章を短くして再実行してください。",
+            "判定の応答待ち時間を超えました。ハードウェア設定で応答の待ち時間を延ばせます。",
           ),
         ),
-      240000,
+      managerResponseTimeoutMs(this.statuses.get(request.managerId)),
     );
     try {
       return await new Promise<WebResult>((resolve, reject) => {
@@ -231,7 +235,12 @@ async function run(job: Job, mode: CaptureMode) {
         const inputs = pageInputs(target, "text");
         if (
           !inputs.length ||
-          inputs.some((input) => !input.text.trim() && !input.images?.length)
+          inputs.some(
+            (input) =>
+              !input.text.trim() &&
+              !input.images?.length &&
+              !input.links?.length,
+          )
         )
           throw new Error("この対象から文章・画像を取得できませんでした。");
         plans.push({ rule, inputs });
@@ -278,6 +287,21 @@ async function run(job: Job, mode: CaptureMode) {
         let result: WebResult | undefined;
         let itemError: string | undefined;
         try {
+          let text = input.text;
+          if (input.links) {
+            const characterLimit = linkCharacterLimit(manager?.inputContext);
+            job.data.message = `${rule.name}：${batch ? `${itemIndex + 1}件目の` : ""}リンク先を取得中…`;
+            await publish(job);
+            const excerpts = await loadLinkExcerpts(
+              capture,
+              input.links,
+              signal,
+              characterLimit,
+            );
+            text = linkInput(excerpts, characterLimit);
+            job.data.message = `${rule.name}：リンク先の本文を判定中（入力は最大${characterLimit.toLocaleString()}文字）`;
+            await publish(job);
+          }
           if (input.images?.length && manager?.supportsImages === false)
             throw new Error(
               "現在のモデルは画像を読み取れません。管理画面で画像対応モデルと画像用ファイルを読み込んでください。",
@@ -289,7 +313,7 @@ async function run(job: Job, mode: CaptureMode) {
               managerId: manager!.id,
               ruleId: rule.id,
               url: capture.url,
-              text: input.text,
+              text,
               ...(input.images?.length ? { images: input.images } : {}),
             },
             signal,
@@ -310,7 +334,10 @@ async function run(job: Job, mode: CaptureMode) {
         signal.throwIfAborted();
         job.data.results.push({
           ...(result
-            ? summarizeResult(rule.name, result)
+            ? summarizeResult(
+                input.links ? `${rule.name}（リンク先）` : rule.name,
+                result,
+              )
             : { name: rule.name, answers: [], error: itemError }),
           ...(input.item ? { item: input.item } : {}),
           ...(input.target ? { target: input.target } : {}),

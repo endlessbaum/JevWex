@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
@@ -41,7 +42,7 @@ try {
   async function load(file) {
     await navigate(page, "models");
     await page.locator("#files").setInputFiles(resolve(file));
-    await page.locator("#load").click();
+    await loadModel(page);
     await page.waitForFunction(
       () =>
         !document.querySelector("#run").disabled ||

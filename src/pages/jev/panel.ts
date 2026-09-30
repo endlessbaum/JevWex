@@ -24,6 +24,7 @@ import {
 } from "../../extension/judge-channel";
 import { CriteriaEditor } from "./criteria-editor";
 import { ImagePermissions } from "./image-permissions";
+import { LinkPermissions } from "./link-permissions";
 import {
   describeScope,
   readScope,
@@ -35,6 +36,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const channel = new BroadcastChannel(JUDGE_CHANNEL);
 const imagePermissions = new ImagePermissions($("create-target-edit"));
+const linkPermissions = new LinkPermissions($("create-target-edit"));
 const managers = new Map<string, ManagerStatus & { seen: number }>();
 let capture: PageCapture | undefined;
 let rules: SiteRule[] = [];
@@ -407,6 +409,11 @@ async function openRule(rule?: SiteRule) {
     rule?.url ?? draftPageUrl,
     rule?.scope,
   );
+  void linkPermissions.update(
+    draftScope,
+    rule?.url ?? draftPageUrl,
+    rule?.scope,
+  );
   $<HTMLButtonElement>("create-add").disabled = false;
   $("create-condition").hidden = false;
   $("create-error").hidden = true;
@@ -437,6 +444,7 @@ $("create-add").onclick = () => {
 $("create-close").onclick = () => {
   if (!saving && (!dirty || confirm("未保存の条件を破棄しますか？"))) {
     $("create-condition").hidden = true;
+    linkPermissions.dispose();
     dirty = false;
     if (draftKey) void chrome.storage.session.remove(draftKey);
     draftKey = "";
@@ -467,6 +475,7 @@ $("create-save").onclick = () =>
         },
         editingRule,
       );
+      linkPermissions.dispose();
       dirty = false;
       $("create-condition").hidden = true;
       await loadRules();
@@ -537,6 +546,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
       draftScope = validateScope(draft.scope);
       $("create-target").textContent = `対象：${describeScope(draftScope)}`;
       void imagePermissions.update(draftScope, draftPageUrl);
+      void linkPermissions.update(draftScope, draftPageUrl);
       dirty = true;
     }
     if (windowId !== undefined) {
@@ -562,6 +572,7 @@ window.addEventListener("beforeunload", (e) => {
   }
 });
 window.addEventListener("pagehide", () => {
+  linkPermissions.dispose();
   if (draftKey) void chrome.storage.session.remove(draftKey);
   clearInterval(heartbeat);
   channel.close();

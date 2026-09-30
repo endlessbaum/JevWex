@@ -12,6 +12,39 @@ export interface ManagerStatus {
   model: string;
   phase: string;
   supportsImages?: boolean;
+  responseSeconds?: number;
+  cloudSeconds?: number;
+  inputContext?: number;
+}
+export async function readManagerInputContext(): Promise<number | undefined> {
+  const channel = new BroadcastChannel(JUDGE_CHANNEL);
+  const statuses: ManagerStatus[] = [];
+  channel.onmessage = ({ data }: MessageEvent<JudgeMessage>) => {
+    if (data.type === "status") statuses.push(data.status);
+  };
+  try {
+    channel.postMessage({ type: "hello" } satisfies JudgeMessage);
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return (statuses.find((status) => status.ready) ?? statuses[0])
+      ?.inputContext;
+  } finally {
+    channel.close();
+  }
+}
+export function managerResponseTimeoutMs(
+  status?: Pick<ManagerStatus, "responseSeconds" | "cloudSeconds">,
+) {
+  const seconds = status?.responseSeconds;
+  const cloud = status?.cloudSeconds;
+  // Include sequential image downloads and cancellation acknowledgement.
+  return (
+    ((Number.isInteger(seconds) && seconds! >= 1 && seconds! <= 3600
+      ? seconds!
+      : 240) +
+      (Number.isInteger(cloud) && cloud! >= 1 && cloud! <= 600 ? cloud! : 0) +
+      150) *
+    1000
+  );
 }
 export interface WebRequest {
   requestId: string;

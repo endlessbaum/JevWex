@@ -5,10 +5,12 @@ import {
   type PageTarget,
 } from "./content-scope";
 import type { PageImage } from "./page-images";
+import type { PageLink } from "./page-links";
 
 export interface PageCapture {
   target?: PageTarget;
   images?: PageImage[];
+  links?: PageLink[];
   items?: {
     target?: PageTarget;
     index: number;
@@ -17,6 +19,7 @@ export interface PageCapture {
     text: string;
     truncated: boolean;
     images?: PageImage[];
+    links?: PageLink[];
   }[];
   tabId: number;
   documentId?: string;

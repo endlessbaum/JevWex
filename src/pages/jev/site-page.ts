@@ -15,6 +15,7 @@ import {
 } from "../../extension/content-scope";
 import { openScopeEditor } from "../../extension/capture";
 import { ImagePermissions } from "./image-permissions";
+import { LinkPermissions } from "./link-permissions";
 
 export class SitePage {
   private host = document.createElement("div");
@@ -27,6 +28,7 @@ export class SitePage {
   private draftKey = "";
   private expected?: SiteRule;
   private imagePermissions: ImagePermissions;
+  private linkPermissions: LinkPermissions;
   constructor(private getCriteria: () => CriterionDraft[]) {
     this.host.id = "sites-page";
     this.host.hidden = true;
@@ -55,6 +57,7 @@ export class SitePage {
       </section>`;
     document.querySelector("main")!.prepend(this.host);
     this.imagePermissions = new ImagePermissions(this.el("site-target-edit"));
+    this.linkPermissions = new LinkPermissions(this.el("site-target-edit"));
     const nav = document.createElement("a");
     nav.id = "nav-sites";
     nav.href = "#sites";
@@ -81,6 +84,7 @@ export class SitePage {
     this.el("site-close").onclick = () => {
       if (this.canDiscard()) {
         this.el("site-form").hidden = true;
+        this.linkPermissions.dispose();
         this.dirty = false;
         if (this.draftKey) void chrome.storage.session.remove(this.draftKey);
         this.draftKey = "";
@@ -95,6 +99,7 @@ export class SitePage {
       }
     });
     window.addEventListener("pagehide", () => {
+      this.linkPermissions.dispose();
       if (this.draftKey) void chrome.storage.session.remove(this.draftKey);
     });
     chrome.storage.onChanged.addListener((changes, area) => {
@@ -107,6 +112,7 @@ export class SitePage {
         this.contentScope = validateScope(draft.scope);
         this.el("site-target").textContent = describeScope(this.contentScope);
         void this.imagePermissions.update(this.contentScope, draft.url);
+        void this.linkPermissions.update(this.contentScope, draft.url);
         this.changed();
       }
     });
@@ -148,6 +154,11 @@ export class SitePage {
     this.el<HTMLSelectElement>("site-scope").value = rule?.scope ?? "exact";
     this.el<HTMLInputElement>("site-enabled").checked = rule?.enabled ?? true;
     void this.imagePermissions.update(
+      this.contentScope,
+      rule?.url ?? "",
+      rule?.scope,
+    );
+    void this.linkPermissions.update(
       this.contentScope,
       rule?.url ?? "",
       rule?.scope,
@@ -280,6 +291,7 @@ export class SitePage {
       this.dirty = false;
       await this.refresh();
       this.el("site-status").textContent = `「${saved.name}」を保存しました。`;
+      this.linkPermissions.dispose();
     } catch (e) {
       this.el("site-error").hidden = false;
       this.el("site-error").textContent = (e as Error).message;

@@ -21,7 +21,9 @@ export function summarizeResult(
   result: WebResult,
 ): OverlayResult {
   return {
-    name,
+    name: result.evaluation.diagnostics?.fallback
+      ? `${name}（ローカルへフォールバック）`
+      : name,
     answers: Object.entries(result.evaluation.response.answers).map(
       ([id, answer]) => {
         const meta = result.presentation[id];

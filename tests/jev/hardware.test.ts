@@ -21,6 +21,7 @@ const caps: HardwareCapabilities = {
 };
 test("hardware auto threads respects capability and limits; GPU must be requested", () => {
   assert.deepEqual(resolveHardware(DEFAULT_HARDWARE, caps), {
+    mmprojDevice: "auto",
     device: "cpu",
     threads: 8,
     gpuLayers: 0,
@@ -90,6 +91,7 @@ test("invalid or old stored settings fall back to defaults", () => {
     { context: -1 },
     { gpuLayers: 0 },
     { device: "cuda" },
+    { mmprojDevice: "gpu" },
   ])
     assert.throws(() => validateHardware({ ...DEFAULT_HARDWARE, ...changed }));
 });
@@ -137,4 +139,39 @@ test("hardware changes reload the same model and capture actual threads and publ
   assert.equal(session.loaded!.threads, 4);
   assert.equal(session.loaded!.hardware!.gpu_layers_offloaded, 4);
   assert.ok(sameHardware(session.loaded!.hardware!.requested, gpu));
+  assert.equal(params.mmproj_offload, true);
+  const cpuProjector = { ...gpu, mmprojDevice: "cpu" as const };
+  await session.load("a", cpuProjector);
+  assert.deepEqual(events, ["load", "exit", "load", "exit", "load"]);
+  assert.equal(params.n_gpu_layers, 4);
+  assert.equal(params.mmproj_offload, false);
+  assert.equal(session.loaded!.hardware!.requested.mmprojDevice, "cpu");
+  await session.load("a", cpuProjector);
+  assert.equal(events.length, 5);
+  await session.load("a", gpu);
+  assert.equal(params.mmproj_offload, true);
+  assert.equal(events.length, 7);
+});
+
+test("legacy settings keep projector behavior and CPU override persists independently of model device", () => {
+  const { mmprojDevice: _, ...old } = DEFAULT_HARDWARE;
+  assert.deepEqual(validateHardware(old), DEFAULT_HARDWARE);
+  const settings = {
+    ...DEFAULT_HARDWARE,
+    device: "webgpu" as const,
+    mmprojDevice: "cpu" as const,
+  };
+  const saved = readHardware({ getItem: () => JSON.stringify(settings) });
+  assert.deepEqual(saved, settings);
+  const resolved = resolveHardware(saved, caps);
+  assert.equal(resolved.gpuLayers, 99999);
+  assert.equal(resolved.mmprojDevice, "cpu");
+  assert.equal(
+    sameHardware(resolved, { ...resolved, mmprojDevice: "auto" }),
+    false,
+  );
+  assert.equal(
+    sameHardware(DEFAULT_LOAD, { ...DEFAULT_LOAD, mmprojDevice: "cpu" }),
+    true,
+  );
 });

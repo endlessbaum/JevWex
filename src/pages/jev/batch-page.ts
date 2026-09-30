@@ -18,7 +18,7 @@ import {
   type BatchRow,
 } from "../../features/jev/batch";
 import { asJevError, type Answer } from "../../features/jev/types";
-import type { ModelSession } from "../../inference/model-session";
+import type { DecisionSession } from "../../inference/decision-session";
 import { readImage, validateImageFiles } from "../../features/jev/images";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
@@ -64,7 +64,7 @@ export class BatchPage {
   private ready = false;
   constructor(
     private options: {
-      session: ModelSession;
+      session: DecisionSession;
       getCriteria(): CriterionDraft[];
       setBusy(busy: boolean): void;
       canStart(): boolean;
@@ -487,6 +487,16 @@ export class BatchPage {
       const text = node("p", row.text);
       text.className = "batch-input-text";
       details.append(text);
+      if (row.result) {
+        details.append(node("p", `使用モデル：${row.result.response.model}`));
+        if (row.result.diagnostics.fallback)
+          details.append(
+            node(
+              "p",
+              `ローカルへフォールバック：${row.result.diagnostics.fallback.reason}`,
+            ),
+          );
+      }
       if (row.result)
         for (const [id, answer] of Object.entries(
           row.result.response.answers,

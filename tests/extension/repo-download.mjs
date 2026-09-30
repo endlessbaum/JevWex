@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import { navigate, runEvaluation } from "./ui-helpers.mjs";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
@@ -57,7 +58,10 @@ try {
     await page.locator("#download-status").textContent(),
     /保存完了/,
   );
-  report.selected = await page.locator("#models").inputValue();
+  report.selected = await page
+    .locator("#models > li")
+    .last()
+    .getAttribute("data-model-id");
   assert.match(
     report.selected,
     /unsloth\/Qwen3-0.6B-GGUF\/resolve\/main\/Qwen3-0.6B-Q4_K_M\.gguf/,
@@ -66,7 +70,7 @@ try {
   await context.setOffline(true);
   await page.reload();
   await page.waitForFunction(
-    () => document.querySelector("#models").options.length === 2,
+    () => document.querySelectorAll("#models > li").length === 1,
   );
   await navigate(page, "models");
   await page.locator("#download-url").fill(report.input);
@@ -91,7 +95,7 @@ try {
     await page.locator("#hardware-save").click();
     await navigate(page, "models");
   }
-  await page.locator("#load").click();
+  await loadModel(page);
   await page.waitForFunction(
     () =>
       !document.querySelector("#run").disabled ||

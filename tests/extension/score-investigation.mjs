@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import {
   navigate,
   fillSingleCriterion,
@@ -41,10 +42,13 @@ try {
       /保存完了/,
     );
   }
-  report.model = await page.locator("#models").inputValue();
+  report.model = await page
+    .locator("#models > li")
+    .last()
+    .getAttribute("data-model-id");
   console.log("MODEL", report.model);
   await context.setOffline(true);
-  await page.locator("#load").click();
+  await loadModel(page);
   await page.waitForFunction(
     () =>
       !document.querySelector("#run").disabled ||

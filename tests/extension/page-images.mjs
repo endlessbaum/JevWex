@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { build } from "esbuild";
@@ -56,7 +57,9 @@ try {
   const url = "https://huggingface.co/page-images-test";
   await manager.evaluate(async (url) => {
     const keys = Object.entries(await chrome.storage.local.get(null))
-      .filter(([key, value]) => key.startsWith("jev-site-rule:") && value.url === url)
+      .filter(
+        ([key, value]) => key.startsWith("jev-site-rule:") && value.url === url,
+      )
       .map(([key]) => key);
     await chrome.storage.local.remove(keys);
   }, url);
@@ -335,7 +338,7 @@ try {
   if (real) {
     await manager.locator("#nav-models").click();
     await manager.waitForFunction(() =>
-      [...document.querySelector("#models").options].some((o) =>
+      [...document.querySelectorAll("#models > li")].some((o) =>
         /LFM2.5-VL/.test(o.textContent),
       ),
     );
@@ -343,10 +346,10 @@ try {
       .locator("#models")
       .evaluate(
         (el) =>
-          [...el.options].find((o) => /LFM2.5-VL/.test(o.textContent)).value,
+          [...el.children].find((o) => /LFM2.5-VL/.test(o.textContent)).dataset
+            .modelId,
       );
-    await manager.locator("#models").selectOption(value);
-    await manager.locator("#load").click();
+    await loadModel(manager, value);
     await manager.waitForFunction(
       () =>
         document

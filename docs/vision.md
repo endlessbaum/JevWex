@@ -17,7 +17,9 @@ PNG・JPEGに対応し、最大4枚、1枚10 MiB・2,000万画素まで。モデ
 
 ## 実装と互換性
 
-`@wllama/wllama@3.6.1` の通常依存を維持しています。`ModelSource.mmprojUrl`、`loadModel`、`getLoadedContextInfo().has_image_input`、`createChatCompletion` のユーザーメッセージ内 `{type: "image", data: ArrayBuffer}` を使用します。画像用ファイルをGPUへ配置するかは既存のCPU/GPU設定に従います。判定対象のモデル名は固定していません。
+モデル本体をGPU、画像用mmprojをCPUで処理したい場合は、ハードウェア設定の「画像処理（mmproj）」で「CPUを使う」を選んで再読み込みしてください。[mmprojの配置設定](hardware.md#画像用ファイルmmprojをcpuで処理する)
+
+`@wllama/wllama@3.6.1` の通常依存を維持しています。`ModelSource.mmprojUrl`、`loadModel`、`getLoadedContextInfo().has_image_input`、`createChatCompletion` のユーザーメッセージ内 `{type: "image", data: ArrayBuffer}` を使用します。画像用ファイルは既定では本体のCPU/GPU設定に従い、「画像処理（mmproj）」でCPUに固定することもできます。判定対象のモデル名は固定していません。
 
 JEV入力のstate/questions構造は維持し、画像バイナリはローカル判定処理の別引数です。開始時に画像と入力を複製し、各質問には個別のバッファを渡します。画像編集も既存の結果世代管理へ反映し、実行中に添付を変更した結果は採用しません。入力はブラウザでデコード確認し、プレビューURLは削除・ページ終了時に解放します。
 

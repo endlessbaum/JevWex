@@ -24,11 +24,28 @@
             ><span aria-hidden="true">⚙</span> ハードウェア設定</a
           >
         </nav>
-        <p class="sidebar-note">
+        <p id="privacy-note" class="sidebar-note">
           入力した文章と画像は<br />この端末で処理します。
         </p>
       </aside>
       <main>
+        <div
+          id="external-transmission-warning"
+          class="external-warning"
+          role="status"
+          hidden
+        >
+          <strong class="external-warning-title"
+            ><span aria-hidden="true">⚠</span>
+            外部サイトへ情報を送信します</strong
+          >
+          <p>
+            API利用中です。単体・一括・Webページ判定の文章と判定基準が、外部のAPI提供元へ送信されます。
+          </p>
+          <p class="external-warning-destination">
+            送信先：<strong id="external-transmission-destination"></strong>
+          </p>
+        </div>
         <div id="batch-page" hidden>
           <header>
             <div>
@@ -302,6 +319,15 @@
                 </p>
               </div>
               <label
+                >画像処理（mmproj）<select id="hardware-mmproj">
+                  <option value="auto">モデル本体に合わせる</option>
+                  <option value="cpu">CPUを使う</option>
+                </select></label
+              >
+              <p class="muted">
+                画像対応モデルで使用します。「CPUを使う」を選ぶと、モデル本体をGPUで動かしたまま画像用ファイル（mmproj）だけをCPUで処理できます。
+              </p>
+              <label
                 >一度に扱える文章量<select id="hardware-context">
                   <option value="1024">短い文章（1,024トークン）</option>
                   <option value="2048">標準（2,048トークン）</option>
@@ -326,6 +352,68 @@
               設定はこのブラウザに保存します。読み込み済みモデルへの反映には再読み込みが必要です。
             </p>
           </section>
+          <section aria-labelledby="runtime-settings-heading">
+            <h2 id="runtime-settings-heading">起動時のモデルと待ち時間</h2>
+            <div class="hardware-fields">
+              <label
+                >起動時の読み込み<select id="runtime-startup">
+                  <option value="small">
+                    重いモデルを避け、軽いモデルを使う
+                  </option>
+                  <option value="last">
+                    サイズに関係なく前回のモデルを使う
+                  </option>
+                  <option value="none">自動では読み込まない</option>
+                </select></label
+              >
+              <label
+                >自動読み込みするサイズの上限（GiB）<input
+                  id="runtime-max-size"
+                  type="number"
+                  min="0.1"
+                  max="128"
+                  step="0.1"
+              /></label>
+              <label
+                >重いモデルの代わりに使うモデル<select id="runtime-fallback">
+                  <option value="">保存済みで最も小さいモデル</option>
+                </select></label
+              >
+              <p class="muted">
+                軽いモデルを使う設定では、前回のモデルが上限を超える・サイズ不明・未保存の場合に代替モデルを使います。代替も上限以下の保存済みモデルに限ります。候補がなければ未読込で起動します。重いモデルも手動で読み込めます。画像判定には画像対応モデルが必要です。
+              </p>
+              <label
+                >モデルの読み込みを待つ時間（秒）<input
+                  id="runtime-load-seconds"
+                  type="number"
+                  min="1"
+                  max="3600"
+                  step="1"
+              /></label>
+              <label
+                >判定の応答を待つ時間（秒）<input
+                  id="runtime-response-seconds"
+                  type="number"
+                  min="1"
+                  max="3600"
+                  step="1"
+              /></label>
+              <p class="muted">
+                待ち時間は最大3,600秒（60分）。応答の制限は1件の入力に対する判定基準全体に適用します。リスト・一括判定は各項目ごとです。中止ボタンは引き続き使えます。
+              </p>
+            </div>
+            <button id="runtime-save" class="primary">
+              起動・待ち時間の設定を保存
+            </button>
+            <p
+              id="runtime-status"
+              class="muted"
+              role="status"
+              aria-live="polite"
+            >
+              起動設定は次回、待ち時間は次の読み込み・判定から反映します。
+            </p>
+          </section>
           <section aria-labelledby="hardware-current-heading">
             <h2 id="hardware-current-heading">現在のモデルの動作設定</h2>
             <p id="hardware-current">モデルはまだ読み込まれていません。</p>
@@ -347,19 +435,115 @@
           </header>
           <section aria-labelledby="model-heading">
             <h2 id="model-heading">使用するモデル</h2>
-            <div class="row">
-              <label class="grow"
-                >追加済みのモデル<select id="models">
-                  <option value="">モデルを選択してください</option>
-                </select></label
-              ><button id="load" class="primary">読み込む</button
-              ><button id="unload" class="secondary">使用を終了</button>
-            </div>
-            <p id="selection" class="muted"></p>
             <p id="loaded" class="model-ready">
               モデルはまだ準備されていません
             </p>
+            <p id="models-empty" class="muted">
+              モデルはまだありません。GGUFファイルを追加するか、JEV互換APIを登録してください。
+            </p>
+            <ul
+              id="models"
+              class="model-list"
+              aria-label="追加済みのモデル"
+            ></ul>
             <p id="cache-warning" class="muted"></p>
+            <p
+              id="model-remove-status"
+              class="muted"
+              role="status"
+              aria-live="polite"
+            ></p>
+            <div id="cloud-editor" role="group" aria-labelledby="cloud-heading">
+              <h2 id="cloud-heading">JEV互換APIの設定</h2>
+              <p id="cloud-editing" class="muted">新しいAPIを追加</p>
+              <p id="cloud-active" class="model-ready">
+                現在：ローカルモデル（既定）
+              </p>
+              <div class="external-warning">
+                <strong class="external-warning-title"
+                  ><span aria-hidden="true">⚠</span>
+                  APIを利用すると、外部サイトへ情報を送信します</strong
+                >
+                <p>
+                  単体・一括・Webページ判定の文章と判定基準を、設定した送信先のAPI提供元へ送ります。
+                </p>
+              </div>
+              <p class="muted">
+                再起動後はローカルに戻ります。HTTP
+                APIサーバーの実行モデルはこの設定とは独立しています。
+              </p>
+              <label
+                >設定名<input
+                  id="cloud-name"
+                  type="text"
+                  maxlength="100"
+                  placeholder="例：社内JEV / TypeSafe"
+              /></label>
+              <label
+                >送信先URL（完全なエンドポイント）<input
+                  id="cloud-endpoint"
+                  type="url"
+                  spellcheck="false"
+              /></label>
+              <label
+                >モデルID<input id="cloud-model" type="text" spellcheck="false"
+              /></label>
+              <label
+                ><span id="cloud-key-label"
+                  >APIキー（変更時は新しいキーを入力）</span
+                ><input
+                  id="cloud-key"
+                  type="password"
+                  autocomplete="off"
+                  spellcheck="false"
+                  maxlength="8192"
+              /></label>
+              <p
+                id="cloud-key-state"
+                class="muted"
+                role="status"
+                aria-live="polite"
+              >
+                APIキー未設定
+              </p>
+              <p id="cloud-key-hint" class="muted">
+                APIキーはこのPCの拡張内に保存します。Chrome再起動後も再入力不要です。保存済みキーは表示しません。
+              </p>
+              <div id="cloud-key-actions" class="row">
+                <button id="cloud-test" class="secondary">
+                  保存済み設定で接続テスト
+                </button>
+                <button id="cloud-key-delete" class="secondary">
+                  このAPI設定を削除
+                </button>
+              </div>
+              <label
+                >クラウド応答の待ち時間（秒）<input
+                  id="cloud-timeout"
+                  type="number"
+                  min="1"
+                  max="600"
+                  value="60"
+              /></label>
+              <label class="batch-checkbox"
+                ><input id="cloud-fallback" type="checkbox" checked />
+                失敗時は読み込み済みのローカルモデルで判定する</label
+              >
+              <p class="muted">
+                フォールバックを使う場合は先にローカルモデルを読み込んでください。画像を含む判定はローカルで処理します。中止時は再実行しません。
+              </p>
+              <div class="row">
+                <button id="cloud-key-save" class="primary">
+                  設定を保存して使用する
+                </button>
+              </div>
+              <p
+                id="cloud-status"
+                role="status"
+                aria-live="polite"
+                class="muted"
+              ></p>
+            </div>
           </section>
           <section aria-labelledby="download-heading">
             <h2 id="download-heading">モデルをダウンロード</h2>
@@ -525,7 +709,7 @@
           ><span id="elapsed"></span>
         </div>
         <footer>
-          入力と結果は自動保存・外部送信しません。タブを閉じると入力と実行中のモデルを終了します。
+          入力と結果は自動保存しません。既定は端末内で処理し、JEV互換APIを選択した場合は文章と判定基準を送信します。タブを閉じると入力と実行中のモデルを終了します。
         </footer>
       </main>
     </div>

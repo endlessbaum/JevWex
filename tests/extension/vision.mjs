@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
@@ -107,7 +108,7 @@ try {
   await context.setOffline(true);
   await page.reload();
   await page.waitForFunction(
-    () => document.querySelector("#models").options.length > 1,
+    () => document.querySelectorAll("#models > li").length > 0,
   );
   await page.locator("#download-vision-example").click();
   await page.locator("#download").click();
@@ -133,7 +134,7 @@ try {
   await page.locator("#hardware-context").selectOption("4096");
   await page.locator("#hardware-save").click();
   await navigate(page, "models");
-  await page.locator("#load").click();
+  await loadModel(page);
   await page.waitForFunction(
     () =>
       !document.querySelector("#run").disabled ||
@@ -248,7 +249,7 @@ try {
   await page
     .locator("#files")
     .setInputFiles(resolve(".models/SmolLM2-135M-Instruct.Q4_K_M.gguf"));
-  await page.locator("#load").click();
+  await loadModel(page);
   await page.waitForFunction(
     () =>
       !document.querySelector("#run").disabled ||

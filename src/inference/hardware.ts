@@ -5,6 +5,7 @@ export interface HardwareSettings {
   threads: "auto" | number;
   gpuLayers: "all" | number;
   context: number;
+  mmprojDevice?: "auto" | "cpu";
 }
 export interface HardwareCapabilities {
   cores: number;
@@ -18,14 +19,17 @@ export interface ResolvedHardware {
   threads: number;
   gpuLayers: number;
   context: number;
+  mmprojDevice?: "auto" | "cpu";
 }
 export const DEFAULT_HARDWARE: HardwareSettings = {
+  mmprojDevice: "auto",
   device: "cpu",
   threads: "auto",
   gpuLayers: "all",
   context: 4096,
 };
 export const DEFAULT_LOAD: ResolvedHardware = {
+  mmprojDevice: "auto",
   device: "cpu",
   threads: 1,
   gpuLayers: 0,
@@ -36,6 +40,8 @@ export function validateHardware(value: unknown): HardwareSettings {
   const x = value as HardwareSettings | null;
   if (
     !x ||
+    (x.mmprojDevice !== undefined &&
+      !["auto", "cpu"].includes(x.mmprojDevice)) ||
     !["cpu", "webgpu"].includes(x.device) ||
     !(
       x.threads === "auto" ||
@@ -56,6 +62,7 @@ export function validateHardware(value: unknown): HardwareSettings {
     threads: x.threads,
     gpuLayers: x.gpuLayers,
     context: x.context,
+    mmprojDevice: x.mmprojDevice ?? "auto",
   };
 }
 export function resolveHardware(
@@ -91,6 +98,7 @@ export function resolveHardware(
     gpuLayers:
       x.device === "cpu" ? 0 : x.gpuLayers === "all" ? 99999 : x.gpuLayers,
     context: x.context,
+    mmprojDevice: x.mmprojDevice,
   };
 }
 export function sameHardware(a: ResolvedHardware, b: ResolvedHardware) {
@@ -98,8 +106,12 @@ export function sameHardware(a: ResolvedHardware, b: ResolvedHardware) {
     a.device === b.device &&
     a.threads === b.threads &&
     a.gpuLayers === b.gpuLayers &&
-    a.context === b.context
+    a.context === b.context &&
+    projectorOffload(a) === projectorOffload(b)
   );
+}
+export function projectorOffload(settings: ResolvedHardware) {
+  return settings.device === "webgpu" && settings.mmprojDevice !== "cpu";
 }
 export function readHardware(
   storage: Pick<Storage, "getItem">,

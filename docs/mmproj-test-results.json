@@ -1,0 +1,11 @@
+{
+  "passed": [
+    "mmproj CPU preference persists while model device stays WebGPU; reset restores automatic behavior",
+    "changing only mmproj reloads the same VLM; language model remains on GPU and projector is requested on CPU"
+  ],
+  "errors": [
+    "page.waitForFunction: Timeout 240000ms exceeded.\n    at runEvaluation (G:\\jev_compat\\jev_wasm\\tests\\extension\\ui-helpers.mjs:45:14)\n    at async file:///G:/jev_compat/jev_wasm/tests/extension/mmproj.mjs:134:18"
+  ],
+  "runs": [],
+  "projectorLogs": []
+}

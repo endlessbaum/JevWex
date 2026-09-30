@@ -10,6 +10,7 @@ export interface ContentScope {
   exclude: string[];
   items?: string;
   images?: boolean;
+  linkedPages?: boolean;
   sharedExclude?: { container: string; items: string; path: string }[];
 }
 export const scopeKey = (url: string) =>
@@ -19,6 +20,8 @@ export function validateScope(value: unknown): ContentScope {
   if (
     !s ||
     (s.images !== undefined && typeof s.images !== "boolean") ||
+    (s.linkedPages !== undefined && typeof s.linkedPages !== "boolean") ||
+    (s.images === true && s.linkedPages === true) ||
     (s.root !== null &&
       (typeof s.root !== "string" || !s.root || s.root.length > 4000)) ||
     !Array.isArray(s.exclude) ||
@@ -47,6 +50,7 @@ export function validateScope(value: unknown): ContentScope {
     exclude: [...new Set(s.exclude)],
     ...(s.items ? { items: s.items } : {}),
     ...(s.images ? { images: true } : {}),
+    ...(s.linkedPages ? { linkedPages: true } : {}),
     ...(s.sharedExclude?.length
       ? {
           sharedExclude: s.sharedExclude.map(({ container, items, path }) => ({
@@ -66,7 +70,7 @@ export async function readScope(url: string): Promise<ContentScope> {
 export function describeScope(scope?: ContentScope): string {
   if (!scope) return "本文を自動選択";
   const excluded = scope.exclude.length + (scope.sharedExclude?.length ?? 0);
-  return `${scope.root ?? "本文を自動選択"} · ${scope.items ? "子要素を1件ずつ" : "まとめて判定"}${scope.images ? " · 画像を含む" : ""}${excluded ? ` · 除外設定 ${excluded}件` : ""}`;
+  return `${scope.root ?? "本文を自動選択"} · ${scope.items ? "子要素を1件ずつ" : "まとめて判定"}${scope.images ? " · 画像を含む" : ""}${scope.linkedPages ? " · リンク先の本文を判定" : ""}${excluded ? ` · 除外設定 ${excluded}件` : ""}`;
 }
 
 // Runs in the isolated world; keep every DOM helper inside this function.
@@ -156,6 +160,7 @@ export function pageContent(
     }));
     let itemSelector = scope.items;
     let includeImages = scope.images === true;
+    let linkedPages = scope.linkedPages === true;
     const warnings: string[] = [];
     function unique(path: string): Element | undefined {
       const nodes = document.querySelectorAll(path);
@@ -335,6 +340,52 @@ export function pageContent(
           label: img.alt.slice(0, 200) || "画像",
         }));
     }
+    function links(el: Element) {
+      if (!linkedPages) return [];
+      const nodes =
+        el instanceof HTMLAnchorElement
+          ? [el]
+          : [...el.querySelectorAll<HTMLAnchorElement>("a[href]")];
+      return nodes
+        .filter((a) => {
+          if (
+            a.hasAttribute("download") ||
+            !a.getClientRects().length ||
+            a.closest(ignored)
+          )
+            return false;
+          for (let node: Element | null = a; node; node = node.parentElement)
+            if (excluded.has(node) || !visible(node)) return false;
+          return true;
+        })
+        .flatMap((a) => {
+          try {
+            const href = a.getAttribute("href");
+            if (!href?.trim() || href.trim().startsWith("#")) return [];
+            const url = new URL(a.href);
+            if (
+              !/^https?:$/.test(url.protocol) ||
+              url.username ||
+              url.password ||
+              url.href.length > 4000
+            )
+              return [];
+            url.hash = "";
+            return [
+              {
+                url: url.href,
+                label:
+                  clean(read(a)).replace(/\s+/g, " ").slice(0, 200) ||
+                  a.getAttribute("aria-label")?.slice(0, 200) ||
+                  a.querySelector("img")?.alt.slice(0, 200) ||
+                  "リンク",
+              },
+            ];
+          } catch {
+            return [];
+          }
+        });
+    }
     function items() {
       if (!itemSelector) return undefined;
       const matched = [...root.querySelectorAll(itemSelector)].filter(
@@ -345,8 +396,15 @@ export function pageContent(
           ![...excluded].some((omit) => omit.contains(el)),
       );
       const entries = matched
-        .map((el) => ({ el, text: clean(read(el)), images: images(el) }))
-        .filter((entry) => entry.text || entry.images.length);
+        .map((el) => ({
+          el,
+          text: clean(read(el)),
+          images: images(el),
+          links: links(el),
+        }))
+        .filter(
+          (entry) => entry.text || entry.images.length || entry.links.length,
+        );
       if (!entries.length)
         throw new Error(
           "1件分の要素が見つかりません。範囲を調整してください。",
@@ -359,13 +417,17 @@ export function pageContent(
         throw new Error(
           "1件分の要素が入れ子で重複しています。外側の繰り返し要素を選び直してください。",
         );
-      return entries.map(({ el, text, images }, index) => ({
+      return entries.map(({ el, text, images, links }, index) => ({
         target: reference(el),
         index: index + 1,
         selector: selector(el),
         label:
-          text.replace(/\s+/g, " ").slice(0, 100) || images[0]?.label || "画像",
+          text.replace(/\s+/g, " ").slice(0, 100) ||
+          images[0]?.label ||
+          links[0]?.label ||
+          "画像",
         ...(includeImages ? { images } : {}),
+        ...(linkedPages ? { links } : {}),
         text: text.slice(0, 48000),
         truncated: text.length > 48000,
       }));
@@ -387,6 +449,7 @@ export function pageContent(
         text: text.slice(0, 48000),
         selection: selection.slice(0, 48000),
         ...(includeImages ? { images: entries ? [] : images(root) } : {}),
+        ...(linkedPages ? { links: entries ? [] : links(root) } : {}),
         truncated: text.length > 48000,
         selectionTruncated: selection.length > 48000,
         capturedAt: new Date().toISOString(),
@@ -485,7 +548,9 @@ export function pageContent(
           (node) =>
             visible(node) &&
             node.getClientRects().length &&
-            (clean(read(node, new Set())) || images(node, new Set()).length),
+            (clean(read(node, new Set())) ||
+              images(node, new Set()).length ||
+              links(node).length),
         ).length;
         if (count >= 2)
           groups.push({
@@ -519,6 +584,64 @@ export function pageContent(
       "p",
       "imgを対象にすると画像判定がオンになります。画像を除外するには構造のチェックを外してください。画像だけでも判定できます。1件あたり4枚まで。動画本体は読み取りません。",
     ).className = "muted";
+    const linkLabel = make("label", "");
+    const linkToggle = make("input", "", linkLabel);
+    linkToggle.type = "checkbox";
+    linkToggle.setAttribute("data-scope-links", "");
+    linkLabel.append("リンク先の本文を取得して判定する");
+    make(
+      "p",
+      "aタグを対象にするとオンになります。contents配下、なければbody配下の本文を取得し、モデルの入力上限の80%以下の文字数に調整します。1件の対象に4リンクまで。未許可のサイトは、対象を確定後に条件画面で取得を許可してください。",
+    ).className = "muted";
+    const linkRefresh = make("button", "リンク先を取得してプレビュー");
+    linkRefresh.setAttribute("data-scope-link-refresh", "");
+    const linkPreview = make("pre", "");
+    linkPreview.setAttribute("data-scope-link-preview", "");
+    let previewId = "",
+      previewSignature = "";
+    function currentScope(): ContentScope {
+      return {
+        root: auto ? null : selector(root),
+        exclude: [...specificExcluded].map(selector),
+        ...(sharedExclude.length ? { sharedExclude } : {}),
+        ...(itemSelector ? { items: itemSelector } : {}),
+        ...(includeImages ? { images: true } : {}),
+        ...(linkedPages ? { linkedPages: true } : {}),
+      };
+    }
+    function cancelLinkPreview() {
+      if (previewId)
+        void chrome.runtime
+          .sendMessage({
+            type: "jev-cancel-link-preview",
+            requestId: previewId,
+          })
+          .catch(() => {});
+      previewId = "";
+    }
+    function previewLinks() {
+      cancelLinkPreview();
+      if (!linkedPages) return;
+      const requestId = (previewId = crypto.randomUUID());
+      linkPreview.textContent =
+        "リンク先を取得しています…（プレビューは先頭4リンク）";
+      void chrome.runtime
+        .sendMessage({
+          type: "jev-preview-link-scope",
+          requestId,
+          url: originalUrl,
+          scope: currentScope(),
+        })
+        .then((response) => {
+          if (previewId !== requestId || !host.isConnected) return;
+          linkPreview.textContent =
+            response?.error ?? response?.text ?? "取得できませんでした。";
+        })
+        .catch((error) => {
+          if (previewId === requestId && host.isConnected)
+            linkPreview.textContent = error.message;
+        });
+    }
     const tree = make("div", "");
     tree.className = "tree";
     tree.setAttribute("aria-label", "HTMLの構造と除外");
@@ -599,7 +722,14 @@ export function pageContent(
       });
       itemSelector = undefined;
       root = el;
-      if (el instanceof HTMLImageElement) includeImages = true;
+      if (el instanceof HTMLImageElement) {
+        includeImages = true;
+        linkedPages = false;
+      }
+      if (el instanceof HTMLAnchorElement && el.hasAttribute("href")) {
+        linkedPages = true;
+        includeImages = false;
+      }
       auto = false;
       dirty = true;
       mode = undefined;
@@ -654,10 +784,31 @@ export function pageContent(
         : images(root).length;
       imageToggle.checked = includeImages;
       imageToggle.disabled = saving;
+      linkToggle.checked = linkedPages;
+      linkToggle.disabled = saving;
+      linkRefresh.hidden = linkPreview.hidden = !linkedPages;
+      linkRefresh.disabled = saving;
+      const linkCount = entries
+        ? entries.reduce((sum, item) => sum + (item.links?.length ?? 0), 0)
+        : links(root).length;
+      if (linkedPages) {
+        const signature = JSON.stringify([
+          currentScope(),
+          entries?.map((item) => item.links) ?? links(root),
+        ]);
+        if (signature !== previewSignature) {
+          previewSignature = signature;
+          previewLinks();
+        }
+      } else {
+        cancelLinkPreview();
+        previewSignature = "";
+      }
       summary.textContent = `${label(root)} · ${(entries ? entries.reduce((sum, item) => sum + item.text.length, 0) : text.length).toLocaleString()}文字 / ページ全体 ${clean(read(document.body, new Set())).length.toLocaleString()}文字 · 除外 ${excluded.size}件${(entries ? entries.some((item) => item.truncated) : text.length > 48000) ? "（1件の取得は先頭48,000文字まで）" : ""}`;
       if (itemSelector)
         summary.textContent += ` · ${entries?.length ?? 0}件を個別判定`;
       if (includeImages) summary.textContent += ` · 画像 ${imageCount}枚`;
+      if (linkedPages) summary.textContent += ` · リンク先 ${linkCount}件`;
       preview.textContent =
         itemError ||
         (entries
@@ -670,7 +821,10 @@ export function pageContent(
               .slice(0, 48000)
           : text.slice(0, 48000));
       save.disabled =
-        saving || !!itemError || (!text && !imageCount) || !root.isConnected;
+        saving ||
+        !!itemError ||
+        (linkedPages ? !linkCount : !text && !imageCount) ||
+        !root.isConnected;
       parent.disabled = saving || root === document.body;
       pick.className = mode === "root" ? "active" : "";
       omit.className = mode === "exclude" ? "active" : "";
@@ -781,9 +935,17 @@ export function pageContent(
     };
     imageToggle.onchange = () => {
       includeImages = imageToggle.checked;
+      if (includeImages) linkedPages = false;
       dirty = true;
       render();
     };
+    linkToggle.onchange = () => {
+      linkedPages = linkToggle.checked;
+      if (linkedPages) includeImages = false;
+      dirty = true;
+      render();
+    };
+    linkRefresh.onclick = previewLinks;
     function setProcessing(el: Element, query: string | undefined) {
       if (query) selectedGroups.set(el, query);
       if (root !== el) changeRoot(el);
@@ -812,6 +974,7 @@ export function pageContent(
       itemSelector = undefined;
       excluded.clear();
       includeImages = false;
+      linkedPages = false;
       specificExcluded.clear();
       sharedExclude = [];
       selectedGroups.clear();
@@ -861,6 +1024,7 @@ export function pageContent(
       }
     }
     function cleanup() {
+      cancelLinkPreview();
       host.remove();
       clearInterval(watch);
       document.removeEventListener("mousemove", move, true);
@@ -884,13 +1048,7 @@ export function pageContent(
       saving = true;
       mode = undefined;
       render();
-      const config = {
-        root: auto ? null : selector(root),
-        exclude: [...specificExcluded].map(selector),
-        ...(sharedExclude.length ? { sharedExclude } : {}),
-        ...(itemSelector ? { items: itemSelector } : {}),
-        ...(includeImages ? { images: true } : {}),
-      };
+      const config = currentScope();
       void chrome.runtime
         .sendMessage({
           type: "jev-save-content-scope",

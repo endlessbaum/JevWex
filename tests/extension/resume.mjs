@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
@@ -75,7 +76,7 @@ try {
   await page.locator("#hardware-context").selectOption("2048");
   await page.locator("#hardware-save").click();
   await navigate(page, "models");
-  await page.locator("#load").click();
+  await loadModel(page);
   await ready(page);
   const remembered = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("jev.last-model.v1")),
@@ -84,16 +85,17 @@ try {
   await page
     .locator("#files")
     .setInputFiles(resolve(".models/SmolLM2-135M-Instruct.Q4_K_M.gguf"));
-  assert.notEqual(await page.locator("#models").inputValue(), remembered.id);
+  assert.notEqual(
+    await page.locator("#models > li").last().getAttribute("data-model-id"),
+    remembered.id,
+  );
   assert.deepEqual(
     await page.evaluate(() =>
       JSON.parse(localStorage.getItem("jev.last-model.v1")),
     ),
     remembered,
   );
-  ok(
-    "Successful load records model; merely selecting another model does not replace it",
-  );
+  ok("Successful load records model; adding another model does not replace it");
   await context.close();
   context = await launch();
   await context.setOffline(true);
@@ -107,7 +109,10 @@ try {
   await page.goto(`chrome-extension://${id}/jev.html`);
   await ready(page);
   assert.equal(await page.locator("#judge-page").isVisible(), true);
-  assert.equal(await page.locator("#models").inputValue(), remembered.id);
+  assert.equal(
+    await page.locator("#models > li").last().getAttribute("data-model-id"),
+    remembered.id,
+  );
   assert.match(
     await page.locator("#model-hint").textContent(),
     /CPU 2スレッド.*2,048/,
@@ -147,7 +152,7 @@ try {
     mimeType: "application/octet-stream",
     buffer: Buffer.from("not a model"),
   });
-  await page.locator("#load").click();
+  await loadModel(page);
   await page.waitForFunction(
     () => !document.querySelector("#error").hidden,
     null,
@@ -160,17 +165,27 @@ try {
     remembered,
   );
   ok("Failed model load preserves the last successful model");
-  await page.evaluate(() =>
+  await page.evaluate(() => {
+    localStorage.setItem(
+      "jev.runtime-settings.v1",
+      JSON.stringify({
+        startup: "last",
+        maxAutoLoadGiB: 4,
+        fallbackModel: "",
+        loadSeconds: 180,
+        responseSeconds: 240,
+      }),
+    );
     localStorage.setItem(
       "jev.last-model.v1",
       JSON.stringify({ id: "cache:missing.gguf", label: "消えたモデル" }),
-    ),
-  );
+    );
+  });
   await page.goto(`chrome-extension://${id}/jev.html`);
   await page.waitForFunction(() =>
     document
       .querySelector("#startup-status")
-      .textContent.includes("見つかりません"),
+      .textContent.includes("前回のモデルが保存されていません"),
   );
   assert.equal(await page.locator("#run").isDisabled(), true);
   assert.deepEqual(requests, []);
@@ -181,16 +196,21 @@ try {
   await page
     .locator("#files")
     .setInputFiles(resolve(".models/SmolLM2-135M-Instruct.Q4_K_M.gguf"));
-  await page.locator("#load").click();
+  await loadModel(page);
   await ready(page);
   await page.goto(`chrome-extension://${id}/jev.html`);
   await page.waitForFunction(() =>
     document
       .querySelector("#startup-status")
-      .textContent.includes("同じ端末のファイル"),
+      .textContent.includes("前回のモデルが保存されていません"),
   );
   assert.equal(await page.locator("#run").isDisabled(), true);
-  assert.match(await page.locator("#startup-status").textContent(), /SmolLM2/);
+  assert.match(
+    await page.evaluate(
+      () => JSON.parse(localStorage.getItem("jev.last-model.v1")).label,
+    ),
+    /SmolLM2/,
+  );
   ok("Local-file model name is remembered with a clear reselection message");
   await page.screenshot({
     path: ".test-artifacts/resume-local.png",
@@ -213,7 +233,7 @@ try {
     await page.locator("#hardware-threads").selectOption("2");
     await page.locator("#hardware-save").click();
     await navigate(page, "models");
-    await page.locator("#load").click();
+    await loadModel(page);
     await ready(page);
     ok(
       "Unavailable hardware setting stops auto-load; correcting settings permits manual recovery",

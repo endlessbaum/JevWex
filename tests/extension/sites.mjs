@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { resolve } from "node:path";
@@ -229,7 +230,7 @@ try {
     );
   if (process.env.JEV_TEST_MODEL) {
     await app.locator("#files").setInputFiles(process.env.JEV_TEST_MODEL);
-    await app.locator("#load").click();
+    await loadModel(app);
     // The panel follows the active tab; return from management to the article.
     await refresh();
     await panel.waitForFunction(

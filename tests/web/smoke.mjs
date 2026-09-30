@@ -1,3 +1,4 @@
+import { loadModel } from "../extension/ui-helpers.mjs";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { resolve } from "node:path";
@@ -133,7 +134,7 @@ try {
   await page
     .locator("#files")
     .setInputFiles(resolve(".models/SmolLM2-135M-Instruct.Q4_K_M.gguf"));
-  await page.locator("#load").click();
+  await loadModel(page);
   await page.waitForFunction(
     () =>
       !document.querySelector("#run").disabled ||

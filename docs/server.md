@@ -35,6 +35,7 @@ API用モデルの初期値は **`unsloth/Qwen3-0.6B-GGUF` のQ4_K_M版**です�
     "device": "cpu",
     "threads": "auto",
     "gpuLayers": "all",
+    "mmprojDevice": "auto",
     "context": 4096
   }
 }
@@ -43,6 +44,8 @@ API用モデルの初期値は **`unsloth/Qwen3-0.6B-GGUF` のQ4_K_M版**です�
 - `model`: Hugging Faceの公開リポジトリ名、公開GGUF直接URL、またはローカルの単一GGUFパス。相対パスはリポジトリのルート基準です。
 - `projector`: 画像用mmproj。ローカルモデルならローカルパス、URL・リポジトリ指定なら公開HF直接URLです。リポジトリ指定では既存のダウンロード処理が画像用ファイルも探します。
 - `hardware`: 既存のハードウェア設定と同じ形式。`device` は `cpu` / `webgpu`、`threads` は `auto` または1〜32、`gpuLayers` は `all` または1〜128、`context` は1024 / 2048 / 4096 / 8192。実機・ブラウザの対応状況による制限も適用します。APIのWebGPU実推論は今回未検証です。
+
+`hardware.mmprojDevice` は省略または `auto` でモデル本体に合わせ、`cpu` で画像用mmprojだけをCPUに固定します。`device: "webgpu"` と組み合わせると本体GPU・mmproj CPUになります。API側の変更はサーバー再起動後に反映します。
 
 例：すでにあるモデルを使う場合、`model` を `.models/Qwen3-0.6B-Q4_K_M.gguf` にするとダウンロードしません。画像モデルは本体と対応するmmprojを両方指定してください。API設定での分割GGUFの指定には未対応です。
 

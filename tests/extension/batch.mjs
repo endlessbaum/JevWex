@@ -1,3 +1,4 @@
+import { loadModel } from "./ui-helpers.mjs";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
@@ -109,13 +110,11 @@ try {
   assert.equal(await page.locator("#batch-content-column").inputValue(), "1");
   assert.equal(await page.locator("#batch-name-column").inputValue(), "0");
   const sourceFile = await page.locator("#batch-source").inputValue();
-  await page
-    .locator("#batch-file")
-    .setInputFiles({
-      name: "records.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from("\uFEFF" + sourceFile),
-    });
+  await page.locator("#batch-file").setInputFiles({
+    name: "records.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("\uFEFF" + sourceFile),
+  });
   await page.waitForFunction(
     () => !document.querySelector("#batch-file").disabled,
   );
@@ -139,7 +138,7 @@ try {
   await page
     .locator("#files")
     .setInputFiles(resolve(".models/qwen2.5-0.5b-instruct-q4_k_m.gguf"));
-  await page.locator("#load").click();
+  await loadModel(page);
   await page.waitForFunction(
     () =>
       !document.querySelector("#run").disabled ||
@@ -154,7 +153,10 @@ try {
   );
   await navigate(page, "batch");
   await page.locator("#batch-run").click();
-  assert.equal(await page.locator("#load").isDisabled(), true);
+  assert.equal(
+    await page.locator('#models [data-model-action="load"]:enabled').count(),
+    0,
+  );
   assert.equal(
     await page
       .locator('#batch-criteria [data-field="alias"]')
@@ -290,18 +292,17 @@ try {
   if (vision) {
     await navigate(page, "models");
     const model = await page
-      .locator("#models option")
+      .locator("#models > li")
       .evaluateAll((options) =>
         options
-          .map((o) => o.value)
+          .map((o) => o.dataset.modelId)
           .find(
             (value) =>
               value.startsWith("cache:") && value.includes("LFM2.5-VL"),
           ),
       );
     assert.ok(model, "Run test:extension:vision first to cache LFM2.5-VL-3B");
-    await page.locator("#models").selectOption(model);
-    await page.locator("#load").click();
+    await loadModel(page, model);
     await page.waitForFunction(
       () =>
         !document.querySelector("#run").disabled ||

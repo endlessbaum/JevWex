@@ -56,14 +56,17 @@ export interface LocalEvaluation {
     runtime:
       | "wllama extension page"
       | "wllama browser page"
-      | "wllama server browser";
-    wllama_version: "3.6.1";
+      | "wllama server browser"
+      | "cloud API";
+    wllama_version?: "3.6.1";
     evaluation_ms: number;
     question_count: number;
     llm_calls: number;
     format_validated: true;
-    confidence_method: "typesafe_adapter_e1d4cc9";
-    readout_method?: "candidate_token_logprobs_v1";
+    confidence_method: "typesafe_adapter_e1d4cc9" | "provider";
+    readout_method?: "candidate_token_logprobs_v1" | "jev_api";
+    provider?: "local" | "jev";
+    fallback?: { from: "jev"; reason: string };
     warnings: string[];
     model_outputs: {
       question: string;
@@ -89,12 +92,18 @@ export type ErrorCode =
   | "MODEL_UNSUPPORTED"
   | "INVALID_REQUEST"
   | "RUNTIME_UNAVAILABLE"
+  | "API_KEY_NOT_CONFIGURED"
+  | "AUTHENTICATION_FAILED"
+  | "RATE_LIMITED"
+  | "NETWORK_ERROR"
+  | "API_ERROR"
   | "LOAD_FAILED"
   | "DOWNLOAD_FAILED"
   | "CONTEXT_LIMIT"
   | "OUTPUT_LIMIT"
   | "INVALID_OUTPUT"
   | "CANCELLED"
+  | "TIMEOUT"
   | "BUSY";
 export class JevError extends Error {
   constructor(

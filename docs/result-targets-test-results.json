@@ -3,13 +3,17 @@
     "real mouse hover scrolls to the matching offscreen list element, highlights it, and clears on leave",
     "DOM reordering keeps the result attached to the original element, not its old nth-child position",
     "combined scope and image-only targets highlight correctly, including nested scroll containers",
-    "a target covered by the overlay is revealed through temporary transparency without moving the hovered result",
+    "overlapping results remain opaque through hover and progress updates; explicit collapse reveals clickable page content and persists until reopened",
     "keyboard focus and highlight survive progress updates without scrolling again, and track layout changes",
     "removed or replaced targets show a stale-target message instead of highlighting a new element",
     "close, escape and a new job clean up highlights without modifying the page element's styles",
     "header dragging continues across live result updates and retains its position when the job completes",
     "dragging stays inside the viewport, supports arrow keys, survives the next job and keeps the handle accessible after scrolling or resizing",
-    "closing during a drag releases capture and listeners; a later overlay and its close button work normally"
+    "closing during a drag releases capture and listeners; a later overlay and its close button work normally",
+    "width and height resizing continues across live updates; custom size survives collapse, expansion and the next job with scrollable results",
+    "top and left resizing anchors the opposite edges; keyboard resizing and viewport changes keep controls accessible and restore the preferred size",
+    "minimum size and viewport bounds prevent unusable panels; double-click and Home restore the automatic default size",
+    "closing during resize releases pointer capture and listeners without affecting a later result panel"
   ],
   "errors": []
 }

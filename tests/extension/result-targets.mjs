@@ -140,6 +140,13 @@ try {
     await source.mouse.move(5, 5);
     await source.mouse.move(rect.x, rect.y);
   };
+  const toggleResults = async () => {
+    const point = await shadow((root) => {
+      const rect = root.querySelector(".collapse").getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    });
+    await source.mouse.click(point.x, point.y);
+  };
   const highlight = () =>
     shadow((root) => {
       const el = root.querySelector(".target-highlight"),
@@ -216,19 +223,73 @@ try {
   });
   await hover(2);
   assert.equal(
-    await shadow((root) => root.querySelector(".box").style.opacity),
-    "0.15",
+    await shadow(
+      (root) => getComputedStyle(root.querySelector(".box")).opacity,
+    ),
+    "1",
   );
+  for (let n = 0; n < 3; n++) {
+    await render({ ...data, message: `更新 ${n}` });
+    assert.equal(
+      await shadow(
+        (root) => getComputedStyle(root.querySelector(".box")).opacity,
+      ),
+      "1",
+    );
+    assert.equal((await highlight()).hidden, false);
+  }
   await source.mouse.move(5, 5);
   assert.equal(
-    await shadow((root) => root.querySelector(".box").style.opacity),
-    "",
+    await shadow(
+      (root) => getComputedStyle(root.querySelector(".box")).opacity,
+    ),
+    "1",
+  );
+  await toggleResults();
+  assert.equal(
+    await shadow((root) => root.querySelector("#jev-result-body").hidden),
+    true,
+  );
+  assert.equal(
+    await source.locator("[data-jev-overlay]").getAttribute("data-dragging"),
+    null,
+  );
+  assert.equal(
+    await source.locator("#combined").evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return (
+        document.elementFromPoint(
+          rect.left + rect.width / 2,
+          rect.top + rect.height / 2,
+        ) === element
+      );
+    }),
+    true,
+  );
+  await render({ ...data, message: "折りたたみ中に結果を更新" });
+  await render({ ...data, phase: "complete" });
+  assert.equal(
+    await shadow((root) => root.querySelector("#jev-result-body").hidden),
+    true,
+  );
+  assert.equal(
+    await shadow((root) => root.activeElement?.classList.contains("collapse")),
+    true,
+  );
+  await mkdir(".test-artifacts", { recursive: true });
+  await source.screenshot({
+    path: ".test-artifacts/result-overlay-collapsed.png",
+  });
+  await toggleResults();
+  assert.equal(
+    await shadow((root) => root.querySelector("#jev-result-body").hidden),
+    false,
   );
   await source
     .locator("#combined")
     .evaluate((el) => el.removeAttribute("style"));
   ok(
-    "a target covered by the overlay is revealed through temporary transparency without moving the hovered result",
+    "overlapping results remain opaque through hover and progress updates; explicit collapse reveals clickable page content and persists until reopened",
   );
 
   await source.mouse.move(5, 5);
@@ -366,6 +427,20 @@ try {
   await shadow((root) => {
     root.querySelector(".box").scrollTop = 10000;
   });
+  const resultScroll = await shadow(
+    (root) => root.querySelector(".box").scrollTop,
+  );
+  await toggleResults();
+  await render({
+    ...moving,
+    jobId: "moving-next",
+    results: Array(20).fill(results[2]),
+  });
+  await toggleResults();
+  assert.equal(
+    await shadow((root) => root.querySelector(".box").scrollTop),
+    resultScroll,
+  );
   const sticky = await grip();
   moved = await bounds();
   assert.ok(sticky.y >= moved.y && sticky.y < moved.y + 80);
@@ -379,6 +454,10 @@ try {
   await source.mouse.up();
   assert.equal(await source.locator("[data-jev-overlay]").count(), 0);
   await render({ ...moving, jobId: "after-drag-close" });
+  assert.equal(
+    await shadow((root) => root.querySelector("#jev-result-body").hidden),
+    false,
+  );
   const beforeMove = await bounds();
   await source.mouse.move(300, 250);
   assert.deepEqual(await bounds(), beforeMove);
@@ -386,6 +465,133 @@ try {
   assert.equal(await source.locator("[data-jev-overlay]").count(), 0);
   ok(
     "closing during a drag releases capture and listeners; a later overlay and its close button work normally",
+  );
+
+  await source.setViewportSize({ width: 1280, height: 720 });
+  const resizing = { ...moving, jobId: "resize-test", phase: "complete" };
+  await render(resizing);
+  const resizeGrip = (edge) =>
+    shadow((root, edge) => {
+      const rect = root
+        .querySelector(`[data-resize-edge="${edge}"]`)
+        .getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }, edge);
+  const dragResize = async (edge, dx, dy) => {
+    const point = await resizeGrip(edge);
+    await source.mouse.move(point.x, point.y);
+    await source.mouse.down();
+    await source.mouse.move(point.x + dx, point.y + dy, { steps: 4 });
+    await source.mouse.up();
+  };
+  const initialSize = await bounds();
+  const resizeStart = await resizeGrip("se");
+  await source.mouse.move(resizeStart.x, resizeStart.y);
+  await source.mouse.down();
+  await source.mouse.move(resizeStart.x + 60, resizeStart.y + 40, { steps: 3 });
+  await render({ ...resizing, message: "サイズ変更中に更新" });
+  await source.mouse.move(resizeStart.x + 120, resizeStart.y + 80, {
+    steps: 3,
+  });
+  await source.mouse.up();
+  const customSize = await bounds();
+  assert.ok(Math.abs(customSize.width - initialSize.width - 120) < 1);
+  assert.ok(Math.abs(customSize.height - initialSize.height - 80) < 1);
+  assert.equal(customSize.x, initialSize.x);
+  assert.equal(customSize.y, initialSize.y);
+  assert.equal(
+    await source.locator("[data-jev-overlay]").getAttribute("data-resizing"),
+    null,
+  );
+  await toggleResults();
+  assert.equal((await bounds()).width, customSize.width);
+  assert.ok((await bounds()).height < customSize.height);
+  await render({ ...resizing, results: Array(12).fill(results[2]) });
+  await toggleResults();
+  assert.equal((await bounds()).width, customSize.width);
+  assert.equal((await bounds()).height, customSize.height);
+  assert.equal(
+    await shadow((root) => {
+      const box = root.querySelector(".box");
+      return box.scrollHeight > box.clientHeight;
+    }),
+    true,
+  );
+  await render({
+    ...resizing,
+    jobId: "resize-next",
+    results: Array(12).fill(results[2]),
+  });
+  assert.equal((await bounds()).width, customSize.width);
+  assert.equal((await bounds()).height, customSize.height);
+  ok(
+    "width and height resizing continues across live updates; custom size survives collapse, expansion and the next job with scrollable results",
+  );
+
+  await dragResize("nw", 40, 20);
+  const northwestSize = await bounds();
+  assert.equal(northwestSize.x, customSize.x + 40);
+  assert.equal(northwestSize.y, customSize.y + 20);
+  assert.equal(northwestSize.width, customSize.width - 40);
+  assert.equal(northwestSize.height, customSize.height - 20);
+  const southeast = await resizeGrip("se");
+  await source.mouse.click(southeast.x, southeast.y);
+  await source.keyboard.press("ArrowRight");
+  await source.keyboard.press("Shift+ArrowDown");
+  const keyboardSize = await bounds();
+  assert.equal(keyboardSize.width, northwestSize.width + 20);
+  assert.equal(keyboardSize.height, northwestSize.height + 60);
+  await source.setViewportSize({ width: 390, height: 300 });
+  await source.waitForTimeout(60);
+  const small = await bounds();
+  assert.ok(small.x >= 16 && small.x + small.width <= 374);
+  assert.ok(small.y >= 16 && small.y + small.height <= 284);
+  const closePoint = await shadow((root) => {
+    const rect = root.querySelector(".close").getBoundingClientRect();
+    return { bottom: rect.bottom, right: rect.right };
+  });
+  assert.ok(closePoint.bottom <= 284 && closePoint.right <= 374);
+  await source.setViewportSize({ width: 1280, height: 720 });
+  await source.waitForTimeout(60);
+  assert.equal((await bounds()).width, keyboardSize.width);
+  assert.equal((await bounds()).height, keyboardSize.height);
+  await source.screenshot({
+    path: ".test-artifacts/result-overlay-resized.png",
+  });
+  ok(
+    "top and left resizing anchors the opposite edges; keyboard resizing and viewport changes keep controls accessible and restore the preferred size",
+  );
+
+  await dragResize("se", -2000, -2000);
+  assert.equal((await bounds()).width, 280);
+  assert.equal((await bounds()).height, 160);
+  await dragResize("se", 4000, 4000);
+  const maximum = await bounds();
+  assert.ok(maximum.x + maximum.width <= 1264);
+  assert.ok(maximum.y + maximum.height <= 704);
+  const resetGrip = await resizeGrip("se");
+  await source.mouse.dblclick(resetGrip.x, resetGrip.y);
+  assert.equal((await bounds()).width, 380);
+  await dragResize("e", 100, 0);
+  await source.keyboard.press("Home");
+  assert.equal((await bounds()).width, 380);
+  ok(
+    "minimum size and viewport bounds prevent unusable panels; double-click and Home restore the automatic default size",
+  );
+
+  const cancelResize = await resizeGrip("se");
+  await source.mouse.move(cancelResize.x, cancelResize.y);
+  await source.mouse.down();
+  await source.keyboard.press("Escape");
+  await source.mouse.up();
+  assert.equal(await source.locator("[data-jev-overlay]").count(), 0);
+  await render({ ...resizing, jobId: "resize-after-close" });
+  const afterResizeClose = await bounds();
+  await source.mouse.move(800, 500);
+  assert.deepEqual(await bounds(), afterResizeClose);
+  await shadow((root) => root.querySelector(".close").click());
+  ok(
+    "closing during resize releases pointer capture and listeners without affecting a later result panel",
   );
 } catch (error) {
   report.errors.push(String(error.stack ?? error));

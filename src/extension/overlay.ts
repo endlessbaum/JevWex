@@ -65,6 +65,19 @@ export function renderOverlay(data: OverlayData): boolean {
       position?: { x: number; y: number };
       drag?: { pointerId: number; offsetX: number; offsetY: number };
       cleanupMove?: () => void;
+      collapsed?: boolean;
+      resultScroll?: number;
+      size?: { width: number; height: number };
+      resize?: {
+        pointerId: number;
+        edge: string;
+        startX: number;
+        startY: number;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      };
     };
   };
   let state = globals.__jevOverlay;
@@ -89,6 +102,7 @@ export function renderOverlay(data: OverlayData): boolean {
       dismissed: false,
       escape: () => {},
       position: state?.position,
+      size: state?.size,
     };
     globals.__jevOverlay = state;
     document.documentElement.append(host);
@@ -97,21 +111,64 @@ export function renderOverlay(data: OverlayData): boolean {
     };
     document.addEventListener("keydown", state.escape);
     host.onpointermove = (event) => {
+      const resize = current.resize;
+      if (resize?.pointerId === event.pointerId) {
+        event.preventDefault();
+        const dx = event.clientX - resize.startX;
+        const dy = event.clientY - resize.startY;
+        const minWidth = Math.min(280, innerWidth - 32);
+        const minHeight = Math.min(160, innerHeight - 32);
+        let { x, y, width, height } = resize;
+        if (resize.edge.includes("w")) {
+          x = Math.max(16, Math.min(x + dx, resize.x + width - minWidth));
+          width = resize.x + resize.width - x;
+        } else if (resize.edge.includes("e")) {
+          width = Math.max(minWidth, Math.min(width + dx, innerWidth - x - 16));
+        }
+        if (resize.edge.includes("n")) {
+          y = Math.max(16, Math.min(y + dy, resize.y + height - minHeight));
+          height = resize.y + resize.height - y;
+        } else if (resize.edge.includes("s")) {
+          height = Math.max(
+            minHeight,
+            Math.min(height + dy, innerHeight - y - 16),
+          );
+        }
+        current.size = { width, height };
+        place(x, y);
+        return;
+      }
       const drag = current.drag;
       if (!drag || drag.pointerId !== event.pointerId) return;
       event.preventDefault();
       place(event.clientX - drag.offsetX, event.clientY - drag.offsetY);
     };
     const endMove = () => {
-      const drag = current.drag;
+      const pointerId = current.drag?.pointerId ?? current.resize?.pointerId;
       current.drag = undefined;
+      current.resize = undefined;
       host.removeAttribute("data-dragging");
-      if (drag && host.hasPointerCapture(drag.pointerId))
-        host.releasePointerCapture(drag.pointerId);
+      host.removeAttribute("data-resizing");
+      if (pointerId !== undefined && host.hasPointerCapture(pointerId))
+        host.releasePointerCapture(pointerId);
     };
     host.onpointerup = endMove;
     host.onpointercancel = endMove;
     host.onlostpointercapture = endMove;
+    host.ondblclick = (event) => {
+      // Pointer capture can retarget the double-click to the host rather than
+      // the grip. Hit-test the shadow tree to keep the reset gesture reliable.
+      if (
+        !current.root
+          .elementFromPoint(event.clientX, event.clientY)
+          ?.closest(".resize-handle")
+      )
+        return;
+      event.preventDefault();
+      event.stopPropagation();
+      current.size = undefined;
+      place();
+    };
     const resize = () => place();
     window.addEventListener("resize", resize);
     window.addEventListener("blur", endMove);
@@ -126,6 +183,19 @@ export function renderOverlay(data: OverlayData): boolean {
   }
   const current = state;
   function place(x = current.position?.x, y = current.position?.y) {
+    current.host.style.setProperty(
+      "width",
+      current.size
+        ? `${Math.max(1, Math.min(current.size.width, innerWidth - 32))}px`
+        : "min(380px,calc(100vw - 32px))",
+      "important",
+    );
+    const box = current.root.querySelector<HTMLElement>(".box");
+    if (box)
+      box.style.height =
+        current.size && !current.collapsed
+          ? `${Math.max(1, Math.min(current.size.height, innerHeight - 32))}px`
+          : "";
     if (x === undefined || y === undefined) return;
     const rect = current.host.getBoundingClientRect();
     current.position = {
@@ -163,6 +233,9 @@ export function renderOverlay(data: OverlayData): boolean {
   )?.dataset.resultIndex;
   const activeIndex = current.activeIndex;
   const handleFocused = root.activeElement?.classList.contains("move-handle");
+  const collapseFocused = root.activeElement?.classList.contains("collapse");
+  const resizeFocused = (root.activeElement as HTMLElement | null)?.dataset
+    .resizeEdge;
   current.clearHighlight?.();
   root.replaceChildren();
   const style = document.createElement("style");
@@ -170,6 +243,7 @@ export function renderOverlay(data: OverlayData): boolean {
   const box = document.createElement("div");
   style.textContent += `header{cursor:grab;touch-action:none;position:sticky;top:-16px;background:#fff;z-index:3;padding:8px 0;margin-top:-8px}header h2{flex:1;min-width:0}.move-handle{font:inherit;font-weight:700;background:transparent;border:0;padding:0;text-align:left;width:100%;cursor:grab;touch-action:none;user-select:none}.move-handle:focus-visible{outline:2px solid #2878dd;outline-offset:4px}:host([data-dragging]) header,:host([data-dragging]) .move-handle{cursor:grabbing}`;
   style.textContent += `section[data-result-index]{cursor:default;border-radius:6px}section[data-result-index]:hover,section[data-result-index]:focus-visible{background:#edf5ff;outline:2px solid #3077cf;outline-offset:4px}.target-highlight{position:fixed;pointer-events:none;border:3px solid #2878dd;background:#2878dd22;box-shadow:0 0 0 2px #fff9;z-index:1}.target-label{position:absolute;left:0;top:0;max-width:100%;padding:2px 6px;background:#195cb2;color:white;font:12px/1.5 system-ui;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.box{position:relative;z-index:2}`;
+  style.textContent += `.resize-handle{position:absolute;z-index:4;padding:0;border:0;background:transparent;border-radius:0;touch-action:none}.resize-handle:focus-visible{outline:2px solid #2878dd;outline-offset:-2px}[data-resize-edge=n],[data-resize-edge=s]{left:14px;right:14px;height:7px;cursor:ns-resize}[data-resize-edge=n]{top:0}[data-resize-edge=s]{bottom:0}[data-resize-edge=e],[data-resize-edge=w]{top:14px;bottom:14px;width:7px;cursor:ew-resize}[data-resize-edge=e]{right:0}[data-resize-edge=w]{left:0}[data-resize-edge=ne],[data-resize-edge=nw],[data-resize-edge=se],[data-resize-edge=sw]{width:14px;height:14px}[data-resize-edge=ne]{right:0;top:0;cursor:nesw-resize}[data-resize-edge=nw]{left:0;top:0;cursor:nwse-resize}[data-resize-edge=se]{right:0;bottom:0;cursor:nwse-resize;width:20px;height:20px}[data-resize-edge=sw]{left:0;bottom:0;cursor:nesw-resize}[data-resize-edge=se]::after{content:"";position:absolute;right:5px;bottom:5px;width:8px;height:8px;border-right:2px solid #607969;border-bottom:2px solid #607969}:host([data-collapsed]) .resize-handle{display:none}:host([data-resizing]){user-select:none}`;
   const highlight = document.createElement("div");
   highlight.className = "target-highlight";
   highlight.hidden = true;
@@ -184,7 +258,6 @@ export function renderOverlay(data: OverlayData): boolean {
   function clearHighlight() {
     cancelAnimationFrame(frame);
     highlight.hidden = true;
-    box.style.opacity = "";
     current.activeIndex = undefined;
   }
   current.clearHighlight = clearHighlight;
@@ -201,7 +274,7 @@ export function renderOverlay(data: OverlayData): boolean {
     }
   }
   function activate(index: number, scroll: boolean) {
-    if (current.drag) return;
+    if (current.drag || current.resize) return;
     clearHighlight();
     current.activeIndex = index;
     const result = data.results[index];
@@ -220,7 +293,6 @@ export function renderOverlay(data: OverlayData): boolean {
     function paint() {
       if (!valid()) {
         highlight.hidden = true;
-        box.style.opacity = "";
         hints[index].hidden = false;
         hints[index].textContent =
           "判定した要素が見つかりません。ページを再判定してください。";
@@ -229,25 +301,11 @@ export function renderOverlay(data: OverlayData): boolean {
       const rect = element!.getBoundingClientRect();
       if (!rect.width || !rect.height) {
         highlight.hidden = true;
-        box.style.opacity = "";
         hints[index].hidden = false;
         hints[index].textContent = "判定した要素は現在表示されていません。";
         return;
       }
       hints[index].hidden = true;
-      // A thumbnail in the right column may sit behind the results. Keep the
-      // pointer's hit area stationary while revealing the page underneath.
-      const panel = box.getBoundingClientRect();
-      const left = Math.max(0, rect.left),
-        right = Math.min(innerWidth, rect.right);
-      const top = Math.max(0, rect.top),
-        bottom = Math.min(innerHeight, rect.bottom);
-      const visibleArea = Math.max(0, right - left) * Math.max(0, bottom - top);
-      const coveredArea =
-        Math.max(0, Math.min(right, panel.right) - Math.max(left, panel.left)) *
-        Math.max(0, Math.min(bottom, panel.bottom) - Math.max(top, panel.top));
-      box.style.opacity =
-        visibleArea && coveredArea > visibleArea / 2 ? "0.15" : "";
       highlight.style.left = `${rect.left - 3}px`;
       highlight.style.top = `${rect.top - 3}px`;
       highlight.style.width = `${rect.width + 6}px`;
@@ -277,7 +335,7 @@ export function renderOverlay(data: OverlayData): boolean {
     if (
       event.button !== 0 ||
       !event.isPrimary ||
-      (event.target as Element).closest(".close")
+      (event.target as Element).closest(".close,.collapse")
     )
       return;
     event.preventDefault();
@@ -312,19 +370,44 @@ export function renderOverlay(data: OverlayData): boolean {
   dismiss.textContent = "×";
   dismiss.setAttribute("aria-label", "判定結果を閉じる");
   dismiss.onclick = close;
-  header.append(title, dismiss);
+  const collapse = document.createElement("button");
+  collapse.type = "button";
+  collapse.className = "collapse";
+  collapse.setAttribute("aria-controls", "jev-result-body");
+  const body = document.createElement("div");
+  body.id = "jev-result-body";
+  function updateCollapsed() {
+    current.host.toggleAttribute("data-collapsed", !!current.collapsed);
+    body.hidden = !!current.collapsed;
+    collapse.textContent = current.collapsed ? "結果を表示" : "たたむ";
+    collapse.title = current.collapsed
+      ? "判定結果を再表示する"
+      : "背後のコンテンツを読むために結果を折りたたむ";
+    collapse.setAttribute("aria-expanded", String(!current.collapsed));
+  }
+  collapse.onclick = () => {
+    if (!current.collapsed) current.resultScroll = box.scrollTop;
+    current.clearHighlight?.();
+    current.collapsed = !current.collapsed;
+    updateCollapsed();
+    place();
+    if (!current.collapsed) box.scrollTop = current.resultScroll ?? 0;
+  };
+  updateCollapsed();
+  style.textContent += `.collapse{flex-shrink:0;white-space:nowrap;font-size:12px}[hidden]{display:none!important}`;
+  header.append(title, collapse, dismiss);
   box.append(header);
   const message = document.createElement("p");
   message.textContent = data.message;
   message.className = data.phase === "error" ? "error" : "";
   message.setAttribute("role", data.phase === "error" ? "alert" : "status");
-  box.append(message);
+  body.append(message);
   if (data.results.some((result) => result.target || result.item?.selector)) {
     const guide = document.createElement("p");
     guide.className = "muted";
     guide.textContent =
-      "結果にカーソルを合わせると、対応する要素を表示します。";
-    box.append(guide);
+      "結果にカーソルを合わせると対象を表示します。「たたむ」で背後を読み、見出しで移動、端・角のドラッグでサイズを変更できます。";
+    body.append(guide);
   }
   for (const [index, result] of data.results.entries()) {
     const section = document.createElement("section");
@@ -381,13 +464,13 @@ export function renderOverlay(data: OverlayData): boolean {
         section.append(p);
       }
     }
-    box.append(section);
+    body.append(section);
   }
   if (data.results.length) {
     const note = document.createElement("p");
     note.className = "muted";
     note.textContent = "割合はモデルの候補間の重みで、正答率ではありません。";
-    box.append(note);
+    body.append(note);
   }
   if (data.phase === "running") {
     const cancel = document.createElement("button");
@@ -398,7 +481,7 @@ export function renderOverlay(data: OverlayData): boolean {
         .sendMessage({ type: "jev-overlay-cancel", jobId: data.jobId })
         .catch(() => {});
     };
-    box.append(cancel);
+    body.append(cancel);
   }
   if (data.phase === "error") {
     const manage = document.createElement("button");
@@ -408,12 +491,87 @@ export function renderOverlay(data: OverlayData): boolean {
         .sendMessage({ type: "jev-open-management" })
         .catch(() => {});
     };
-    box.append(manage);
+    body.append(manage);
   }
+  box.append(body);
   root.append(style, highlight, box);
-  box.scrollTop = oldScroll;
+  for (const edge of ["n", "s", "e", "w", "ne", "nw", "se", "sw"]) {
+    const handle = document.createElement("button");
+    handle.type = "button";
+    handle.className = "resize-handle";
+    handle.dataset.resizeEdge = edge;
+    handle.tabIndex = edge === "se" ? 0 : -1;
+    handle.setAttribute(
+      "aria-label",
+      `判定結果のサイズを変更（${{ n: "上", s: "下", e: "右", w: "左", ne: "右上", nw: "左上", se: "右下", sw: "左下" }[edge]}）`,
+    );
+    handle.title =
+      "ドラッグでサイズ変更。矢印キーでも変更できます。ダブルクリック・Homeキーで標準サイズに戻します。";
+    handle.onpointerdown = (event) => {
+      if (event.button !== 0 || !event.isPrimary || current.collapsed) return;
+      event.preventDefault();
+      event.stopPropagation();
+      current.clearHighlight?.();
+      handle.focus({ preventScroll: true });
+      const rect = current.host.getBoundingClientRect();
+      current.resize = {
+        pointerId: event.pointerId,
+        edge,
+        startX: event.clientX,
+        startY: event.clientY,
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+      };
+      current.host.setAttribute("data-resizing", "");
+      current.host.setPointerCapture(event.pointerId);
+    };
+    const resetSize = () => {
+      current.size = undefined;
+      place();
+    };
+    handle.onkeydown = (event) => {
+      if (event.key === "Home") {
+        event.preventDefault();
+        event.stopPropagation();
+        resetSize();
+        return;
+      }
+      const delta = {
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0],
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+      }[event.key];
+      if (!delta) return;
+      event.preventDefault();
+      event.stopPropagation();
+      current.clearHighlight?.();
+      const rect = current.host.getBoundingClientRect();
+      const step = event.shiftKey ? 60 : 20;
+      current.size = {
+        width: Math.max(
+          Math.min(280, innerWidth - 32),
+          Math.min(rect.width + delta[0] * step, innerWidth - rect.left - 16),
+        ),
+        height: Math.max(
+          Math.min(160, innerHeight - 32),
+          Math.min(rect.height + delta[1] * step, innerHeight - rect.top - 16),
+        ),
+      };
+      place(rect.left, rect.top);
+    };
+    root.append(handle);
+  }
   place();
+  box.scrollTop = oldScroll;
   if (handleFocused) moveHandle.focus({ preventScroll: true });
+  if (collapseFocused) collapse.focus({ preventScroll: true });
+  if (resizeFocused)
+    root
+      .querySelector<HTMLElement>(`[data-resize-edge="${resizeFocused}"]`)
+      ?.focus({ preventScroll: true });
   if (focusedIndex !== undefined) {
     restoring = true;
     sections[Number(focusedIndex)]?.focus({ preventScroll: true });

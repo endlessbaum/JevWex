@@ -93,8 +93,56 @@ try {
     await source.locator("[data-jev-scope-editor]").waitFor();
   };
   await open();
+  assert.equal(
+    await edit((root) => {
+      const structure = root.querySelector("[data-scope-structure]");
+      return (
+        [...structure.querySelectorAll("button")].some(
+          (button) => button.textContent === "親要素へ",
+        ) &&
+        structure.getBoundingClientRect().top <
+          root.querySelector(".options").getBoundingClientRect().top &&
+        !root.querySelector(".help").open &&
+        ![...root.querySelectorAll("button")].some((button) =>
+          button.textContent.includes("除外を選ぶ"),
+        )
+      );
+    }),
+    true,
+  );
+  const treeScroll = await edit((root) => {
+    root.querySelectorAll(".tree details").forEach((details) => {
+      details.open = true;
+    });
+    const tree = root.querySelector(".tree");
+    tree.scrollTop = 80;
+    return tree.scrollTop;
+  });
+  // The whole label is a toggle; it must not collapse the surrounding tree row.
   await edit((root) =>
-    root.querySelector('input[aria-label="aside#relatedを含める"]').click(),
+    root
+      .querySelector('input[aria-label="aside#relatedを含める"]')
+      .closest("label")
+      .click(),
+  );
+  assert.equal(
+    await edit(
+      (root) =>
+        root
+          .querySelector('input[aria-label="aside#relatedを含める"]')
+          .closest("details").open,
+    ),
+    true,
+  );
+  assert.equal(
+    await edit((root) => root.querySelector(".tree").scrollTop),
+    treeScroll,
+  );
+  assert.match(
+    await edit(
+      (root) => root.querySelector("[data-scope-preview]").textContent,
+    ),
+    /The cat sleeps/,
   );
   await edit((root) =>
     root.querySelector('input[aria-label="section#commentsを含める"]').click(),
@@ -255,8 +303,7 @@ try {
     "missing saved selectors stop capture instead of expanding silently; reset restores automatic selection",
   );
   await open();
-  await click("ページ上で除外を選ぶ");
-  await source.locator("#related a").click();
+  await source.locator("#related a").click({ modifiers: ["Alt"] });
   assert.equal(source.url(), url);
   assert.doesNotMatch(
     await edit((root) => root.querySelector("pre").textContent),
@@ -266,12 +313,33 @@ try {
     await edit((root) => root.querySelectorAll(".excluded").length),
     1,
   );
+  await source.locator("#related a").click({ modifiers: ["Alt"] });
+  assert.equal(source.url(), url);
+  assert.match(
+    await edit(
+      (root) => root.querySelector("[data-scope-preview]").textContent,
+    ),
+    /広告を開く/,
+  );
+  assert.equal(
+    await edit((root) => root.querySelectorAll(".excluded").length),
+    0,
+  );
+  // Clicking a descendant restores its excluded ancestor without changing mode.
+  await edit((root) =>
+    root.querySelector('input[aria-label="aside#relatedを含める"]').click(),
+  );
+  await source.locator("#related a").click({ modifiers: ["Alt"] });
+  assert.equal(
+    await edit((root) => root.querySelectorAll(".excluded").length),
+    0,
+  );
   await source.evaluate(() => history.pushState(null, "", "/scope-test/other"));
   await source
     .locator("[data-jev-scope-editor]")
     .waitFor({ state: "detached" });
   ok(
-    "page exclusion intercepts link navigation, and navigating away removes editor and listeners",
+    "Alt-click excludes and restores page elements without a mode button or link navigation; navigation removes editor and listeners",
   );
   assert.deepEqual(report.errors, []);
 } catch (e) {

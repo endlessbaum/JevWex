@@ -293,3 +293,18 @@ export function linkInput(
     )
     .join("\n\n");
 }
+
+// Display only. Never pass this abbreviated text to inference.
+export function linkPreviewText(link: LinkExcerpt) {
+  const lines = link.text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const beginning = lines
+    .slice(0, 3)
+    .map((line) => (line.length > 100 ? `${line.slice(0, 100)}…` : line))
+    .join("\n");
+  const omitted =
+    lines.length > 3 || lines.slice(0, 3).some((line) => line.length > 100);
+  return `取得成功：${link.label}\nURL：${link.url}\nページタイトル：${link.title}\n取得本文：${link.text.length.toLocaleString()}文字${link.truncated ? "（入力上限で一部省略）" : ""}\n${beginning}${omitted ? "\n…（続きはプレビューでは省略）" : ""}`;
+}

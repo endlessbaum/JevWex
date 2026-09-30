@@ -211,11 +211,9 @@ try {
   );
   assert.doesNotMatch(await preview(), /BODY gamma/);
   await toggle("li#gamma");
-  await click("ページ上で除外を選ぶ");
-  await source.locator("#alpha-title").click();
+  await source.locator("#alpha-title").click({ modifiers: ["Alt"] });
   assert.equal(source.url(), url);
   assert.doesNotMatch(await preview(), /TITLE (alpha|beta|gamma|delta)/);
-  await click("ページ上で除外を選ぶ");
   await edit((root) =>
     root.querySelectorAll(".tree details").forEach((el) => {
       el.open = true;
@@ -271,9 +269,9 @@ try {
   );
   await open();
   await edit((root) => {
-    const row = root.querySelector(
-      'input[aria-label="li#alphaを含める"]',
-    ).parentElement;
+    const row = root
+      .querySelector('input[aria-label="li#alphaを含める"]')
+      .closest("summary");
     [...row.querySelectorAll("button")]
       .find((button) => button.textContent === "この要素以下に絞る")
       .click();

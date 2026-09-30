@@ -6,7 +6,7 @@
     "page picking narrows the root and parent navigation adjusts the structural boundary",
     "shortcut execution path sends only the saved content range to the inference manager",
     "missing saved selectors stop capture instead of expanding silently; reset restores automatic selection",
-    "page exclusion intercepts link navigation, and navigating away removes editor and listeners"
+    "Alt-click excludes and restores page elements without a mode button or link navigation; navigation removes editor and listeners"
   ],
   "errors": []
 }

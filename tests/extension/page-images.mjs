@@ -236,9 +236,9 @@ try {
     return result.result.value;
   };
   await shadow("data-jev-scope-editor", (root) => {
-    const row = root.querySelector(
-      'input[aria-label="img#deniedを含める"]',
-    ).parentElement;
+    const row = root
+      .querySelector('input[aria-label="img#deniedを含める"]')
+      .closest("summary");
     [...row.querySelectorAll("button")]
       .find((b) => b.textContent === "この要素以下に絞る")
       .click();

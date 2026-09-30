@@ -3,7 +3,11 @@ import { cancelPageJudge, jobKey, startPageJudge } from "./page-judge";
 import { handlePageCommand } from "./commands";
 import { pageContent, scopeKey, validateScope } from "./content-scope";
 import { readRules } from "./site-rules";
-import { linkCharacterLimit, linkInput, loadLinkExcerpts } from "./page-links";
+import {
+  linkCharacterLimit,
+  linkPreviewText,
+  loadLinkExcerpts,
+} from "./page-links";
 import { readManagerInputContext } from "./judge-channel";
 import { CloudKeyStore, isCloudSettingsSender } from "./cloud-key-store";
 import { JevError } from "../features/jev/types";
@@ -200,12 +204,12 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
         const scope = validateScope(message.scope);
         if (!scope.linkedPages)
           throw new Error("リンク先の判定をオンにしてください。");
-        if (!extensionPage && sender.url !== message.url)
-          throw new Error("ページが移動しました。対象を選び直してください。");
         cancelLinkPreviews(tabId);
         const controller = new AbortController();
         linkPreviews.set(requestId, { tabId, controller });
         const capture = await captureTab(tabId, scope);
+        // sender.url can retain the document's initial URL after pushState.
+        // Validate the live URL and document ID from recapture instead.
         if (
           capture.url !== message.url ||
           (sender.documentId &&
@@ -226,6 +230,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
         if (!links.length)
           throw new Error("対象に取得可能なリンクがありません。");
         const previews: string[] = [];
+        let successCount = 0;
         const characterLimit = linkCharacterLimit(
           await readManagerInputContext(),
         );
@@ -238,19 +243,20 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
               controller.signal,
               characterLimit,
             );
-            previews.push(
-              `${link.label}\nURL：${link.url}\nページタイトル：${excerpts[0].title}\n${linkInput(excerpts, characterLimit)}`,
-            );
+            previews.push(linkPreviewText(excerpts[0]));
+            successCount++;
           } catch (error) {
             controller.signal.throwIfAborted();
             previews.push(
-              `${link.label}\n${link.url}\n${(error as Error).message}`,
+              `取得失敗：${link.label}\n${link.url}\n${(error as Error).message}`,
             );
           }
         }
         controller.signal.throwIfAborted();
         reply({
-          text: `本文の入力上限：${characterLimit.toLocaleString()}文字（モデルの上限の80%・複数リンクは判定時に合計で調整）\n\n${previews.join("\n\n")}`,
+          successCount,
+          totalCount: links.length,
+          text: `プレビューは本文の先頭3行のみ。判定には取得した本文全体を使います（入力は合計${characterLimit.toLocaleString()}文字まで・モデル上限の80%）。\n\n${previews.join("\n\n")}`,
         });
       } catch (error) {
         reply({ error: (error as Error).message });
@@ -280,7 +286,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       try {
         const scope = validateScope(message.scope);
         const tab = await chrome.tabs.get(tabId);
-        if (tab.url !== message.url || sender.url !== message.url)
+        if (tab.url !== message.url)
           throw new Error("ページが移動しました。範囲を選び直してください。");
         // Validate selectors against the same document before persisting them.
         const [validation] = await chrome.scripting.executeScript({

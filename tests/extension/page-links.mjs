@@ -67,7 +67,7 @@ try {
     const space = path === "/space";
     return route.fulfill({
       contentType: "text/html; charset=utf-8",
-      body: `<html><head><title>${space ? "天文の記事" : "料理の記事"}</title><script src="https://assets.example/active.js"></script></head><body><header>UNWANTED NAVIGATION</header><nav>UNWANTED MENU</nav><main><p>OUTSIDE CONTENTS</p><section ${space ? 'id="contents"' : ""}><h1>${space ? "Astronomy" : "Cooking"}</h1><p>${space ? "Astronomy stars and galaxies." : "Cooking soup and vegetables."}</p><p hidden>HIDDEN SECRET</p><p style="display:none">STYLE HIDDEN SECRET</p><img src="https://assets.example/tracker.png"><iframe src="https://assets.example/frame"></iframe><script>fetch('https://assets.example/run')</script><a href="https://assets.example/deeper">Further reading</a></section><p>BODY AFTER</p></main><footer>UNWANTED FOOTER</footer></body></html>`,
+      body: `<html><head><title>${space ? "天文の記事" : "料理の記事"}</title><script src="https://assets.example/active.js"></script></head><body><header>UNWANTED NAVIGATION</header><nav>UNWANTED MENU</nav><main><p>OUTSIDE CONTENTS</p><section ${space ? 'id="contents"' : ""}><h1>${space ? "Astronomy" : "Cooking"}</h1><p>${space ? "Astronomy stars and galaxies." : "Cooking soup and vegetables."}</p><p hidden>HIDDEN SECRET</p><p style="display:none">STYLE HIDDEN SECRET</p><img src="https://assets.example/tracker.png"><iframe src="https://assets.example/frame"></iframe><script>fetch('https://assets.example/run')</script><a href="https://assets.example/deeper">Further reading</a><p>DESTINATION_BODY_END</p></section><p>BODY AFTER</p></main><footer>UNWANTED FOOTER</footer></body></html>`,
     });
   });
   await context.route("https://assets.example/**", (route) => {
@@ -224,6 +224,18 @@ try {
     /未許可/,
   );
   assert.equal(source.url(), url);
+  assert.equal(
+    await edit(
+      (root) => root.querySelector("[data-scope-link-status]").dataset.state,
+    ),
+    "error",
+  );
+  assert.match(
+    await edit(
+      (root) => root.querySelector("[data-scope-link-status]").textContent,
+    ),
+    /取得失敗 0\/1件/,
+  );
   await click("この対象を使う");
   await source
     .locator("[data-jev-scope-editor]")
@@ -253,6 +265,9 @@ try {
     .locator("[data-link-permissions] pre")
     .innerText();
   assert.match(preview, /天文の記事/);
+  assert.match(preview, /先頭3行/);
+  assert.match(preview, /続きはプレビューでは省略/);
+  assert.doesNotMatch(preview, /DESTINATION_BODY_END/);
   assert.doesNotMatch(preview, /UNWANTED|HIDDEN|fetch\(/);
   assert.deepEqual(report.requests, ["https://linked.example/space"]);
   await mkdir(".test-artifacts", { recursive: true });
@@ -313,13 +328,14 @@ try {
   let inputs = await manager.evaluate(() => linkRequests);
   assert.equal(inputs.length, 1);
   assert.match(inputs[0].text, /Astronomy stars/);
+  assert.match(inputs[0].text, /DESTINATION_BODY_END$/);
   assert.ok(inputs[0].text.length <= Math.floor(2048 * 0.8));
   assert.doesNotMatch(inputs[0].text, /天文の記事|料理のおすすめ/);
   assert.doesNotMatch(inputs[0].text, /OUTSIDE CONTENTS|BODY AFTER/);
   const overlay = await shadow("data-jev-overlay", (root) => root.textContent);
   assert.match(overlay, /リンク先[\s\S]*90\.0%/);
   ok(
-    "saved condition evaluates fetched destination content and reports the result on the original anchor",
+    "preview shows only the beginning while inference receives the entire fetched body including its ending and reports on the original anchor",
   );
 
   // Apply destination mode to a list and exclude each item's advertising link.
@@ -393,6 +409,20 @@ try {
     );
     assert.equal((await completed(resized.jobId)).phase, "complete");
     const text = await manager.evaluate(() => linkRequests[0].text);
+    const shortPreview = await manager.evaluate(
+      ({ tabId, url }) =>
+        chrome.runtime.sendMessage({
+          type: "jev-preview-link-scope",
+          requestId: crypto.randomUUID(),
+          tabId,
+          url,
+          scope: { root: "#first", exclude: [], linkedPages: true },
+        }),
+      { tabId, url },
+    );
+    assert.equal(shortPreview.successCount, 1);
+    assert.doesNotMatch(shortPreview.text, new RegExp("x".repeat(101)));
+    assert.match(text, new RegExp("x".repeat(1000)));
     assert.ok(text.length <= Math.floor(inputContext * 0.8));
     assert.ok(text.length > previousLength);
     assert.match(text, /一部を省略/);
@@ -501,6 +531,206 @@ try {
   await source.screenshot({
     path: ".test-artifacts/link-destination-results.png",
   });
+
+  // Open the editor after an SPA navigation, on a short, zoomed page whose
+  // scroll library cancels wheel defaults. The footer and preview must remain usable.
+  const spaUrl = url + "?spa=1";
+  await source.setViewportSize({ width: 390, height: 430 });
+  await source.evaluate((spaUrl) => {
+    history.pushState({}, "", spaUrl);
+    document.documentElement.style.zoom = "1.25";
+    document.addEventListener("wheel", (event) => event.preventDefault(), {
+      capture: true,
+      passive: false,
+    });
+  }, spaUrl);
+  await manager.evaluate(
+    async ({ tabId, spaUrl }) => {
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        func: linkTest.pageContent,
+        args: [
+          { root: "a#first", exclude: [], linkedPages: true },
+          true,
+          spaUrl,
+        ],
+      });
+    },
+    { tabId, spaUrl },
+  );
+  await source.locator("[data-jev-scope-editor]").waitFor();
+  for (let n = 0; n < 50; n++) {
+    if (
+      (await edit(
+        (root) => root.querySelector("[data-scope-link-status]").dataset.state,
+      )) === "success"
+    )
+      break;
+    await source.waitForTimeout(100);
+  }
+  assert.match(
+    await edit(
+      (root) => root.querySelector("[data-scope-link-status]").textContent,
+    ),
+    /取得成功 1\/1件/,
+  );
+  assert.match(
+    await edit(
+      (root) => root.querySelector("[data-scope-link-preview]").textContent,
+    ),
+    /Astronomy/,
+  );
+  assert.doesNotMatch(
+    await edit(
+      (root) => root.querySelector("[data-scope-link-preview]").textContent,
+    ),
+    /ページが移動/,
+  );
+  assert.equal(
+    await edit((root) => root.querySelector("[data-scope-preview]").hidden),
+    true,
+  );
+  assert.doesNotMatch(
+    await edit(
+      (root) => root.querySelector("[data-scope-summary]").textContent,
+    ),
+    /0文字/,
+  );
+  const bounds = await edit((root) => {
+    const content = root.querySelector(".content");
+    const footer = root.querySelector(".footer").getBoundingClientRect();
+    const box = root.querySelector(".box").getBoundingClientRect();
+    return {
+      footerBottom: footer.bottom,
+      boxBottom: box.bottom,
+      boxLeft: box.left,
+      boxRight: box.right,
+      width: innerWidth,
+      viewport: innerHeight,
+      height: content.clientHeight,
+      scrollHeight: content.scrollHeight,
+    };
+  });
+  assert.ok(bounds.footerBottom <= bounds.viewport, JSON.stringify(bounds));
+  assert.ok(bounds.boxBottom <= bounds.viewport, JSON.stringify(bounds));
+  assert.ok(
+    bounds.boxLeft >= 0 && bounds.boxRight <= bounds.width,
+    JSON.stringify(bounds),
+  );
+  assert.ok(bounds.scrollHeight > bounds.height, JSON.stringify(bounds));
+  const contentPoint = await edit((root) => {
+    const rect = root.querySelector(".content").getBoundingClientRect();
+    return { x: rect.left + 30, y: rect.top + 30 };
+  });
+  await source.mouse.move(contentPoint.x, contentPoint.y);
+  await source.mouse.wheel(0, 350);
+  assert.ok(await edit((root) => root.querySelector(".content").scrollTop > 0));
+  await edit((root) =>
+    root
+      .querySelector("[data-scope-link-preview]")
+      .scrollIntoView({ block: "start" }),
+  );
+  const previewPoint = await edit((root) => {
+    const preview = root.querySelector("[data-scope-link-preview]");
+    const rect = preview.getBoundingClientRect();
+    return {
+      x: rect.left + 30,
+      y: rect.top + 30,
+      height: preview.clientHeight,
+      scrollHeight: preview.scrollHeight,
+    };
+  });
+  assert.ok(
+    previewPoint.scrollHeight > previewPoint.height,
+    JSON.stringify(previewPoint),
+  );
+  await source.mouse.move(previewPoint.x, previewPoint.y);
+  await source.mouse.wheel(0, 120);
+  assert.ok(
+    await edit(
+      (root) => root.querySelector("[data-scope-link-preview]").scrollTop > 0,
+    ),
+  );
+  await source.screenshot({
+    path: ".test-artifacts/link-preview-short-viewport.png",
+  });
+  ok(
+    "short zoomed editors and nested previews scroll despite page wheel cancellation; footer stays visible and SPA URLs preview successfully",
+  );
+  await click("新しい条件の対象に使う");
+  await source
+    .locator("[data-jev-scope-editor]")
+    .waitFor({ state: "detached" });
+  const deniedBefore = report.requests.length;
+  const wrongPage = await manager.evaluate(
+    ({ tabId, url }) =>
+      chrome.runtime.sendMessage({
+        type: "jev-preview-link-scope",
+        requestId: crypto.randomUUID(),
+        tabId,
+        url,
+        scope: { root: "a#first", exclude: [], linkedPages: true },
+      }),
+    { tabId, url },
+  );
+  assert.match(wrongPage.error, /ページが移動/);
+  assert.equal(report.requests.length, deniedBefore);
+  ok(
+    "SPA target saving works while a mismatched live page URL is still rejected before fetching",
+  );
+  await source.locator("#first").evaluate((a) => {
+    a.href = "https://linked.example/pdf";
+  });
+  await manager.evaluate(
+    async ({ tabId, spaUrl }) => {
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        func: linkTest.pageContent,
+        args: [
+          {
+            root: "ul#list",
+            exclude: ["li#one small", "li#two small"],
+            linkedPages: true,
+          },
+          true,
+          spaUrl,
+        ],
+      });
+    },
+    { tabId, spaUrl },
+  );
+  await source.locator("[data-jev-scope-editor]").waitFor();
+  for (let n = 0; n < 50; n++) {
+    if (
+      await edit(
+        (root) =>
+          root.querySelector("[data-scope-link-status]").dataset.state ===
+          "partial",
+      )
+    )
+      break;
+    await source.waitForTimeout(100);
+  }
+  assert.match(
+    await edit(
+      (root) => root.querySelector("[data-scope-link-status]").textContent,
+    ),
+    /取得成功 1\/2件.*1件失敗/,
+  );
+  assert.match(
+    await edit(
+      (root) => root.querySelector("[data-scope-link-preview]").textContent,
+    ),
+    /取得失敗[\s\S]*取得成功/,
+  );
+  await click("閉じる");
+  await source
+    .locator("[data-jev-scope-editor]")
+    .waitFor({ state: "detached" });
+  assert.deepEqual(report.errors, []);
+  ok(
+    "footer distinguishes complete failure, successful fetches and partial previews without reporting failed links as success",
+  );
 } finally {
   await mkdir(".test-artifacts", { recursive: true });
   await writeFile(

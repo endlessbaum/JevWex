@@ -47,7 +47,7 @@ export class LinkPermissions {
           this.button.hidden = true;
           this.refresh.hidden = false;
           this.note.textContent =
-            "リンク先の取得を許可しました。本文のプレビューは先頭4リンクです。";
+            "リンク先の取得を許可しました。プレビューは先頭4リンクの本文各3行です。判定には入力上限内の本文全体を使います。";
           await this.loadPreview();
         })
         .catch((error) => {

@@ -86,9 +86,9 @@ try {
     );
   const narrow = (label) =>
     edit((root, label) => {
-      const row = root.querySelector(
-        `input[aria-label="${label}を含める"]`,
-      ).parentElement;
+      const row = root
+        .querySelector(`input[aria-label="${label}を含める"]`)
+        .closest("summary");
       [...row.querySelectorAll("button")]
         .find((b) => b.textContent === "この要素以下に絞る")
         .click();

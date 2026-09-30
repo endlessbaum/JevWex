@@ -484,18 +484,71 @@ export function pageContent(
     const style = document.createElement("style");
     style.textContent = `:host{all:initial}*{box-sizing:border-box}.box{position:fixed;top:12px;right:12px;width:min(380px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;background:#fff;color:#213b33;border:1px solid #c5d9cf;border-radius:12px;box-shadow:0 8px 40px #0004;padding:16px;font:14px/1.5 system-ui,sans-serif;pointer-events:auto}h2{font-size:17px;margin:0 0 8px}p{margin:8px 0}button,select{font:inherit;color:inherit;background:#f2f7f4;border:1px solid #bfd2c6;border-radius:6px;padding:6px 8px;cursor:pointer;max-width:100%}button:disabled{opacity:.5;cursor:default}.actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.primary{background:#256749;color:white}.active{background:#e0edff;border-color:#2563eb}.tree{max-height:230px;overflow:auto;border:1px solid #dce5df;padding:8px}.tree details{margin-left:12px}.tree summary{cursor:pointer;overflow-wrap:anywhere}.tree button{font-size:11px;padding:1px 4px;margin:0 4px}.tree input{accent-color:#257149}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:150px;overflow:auto;font:12px/1.5 system-ui;background:#f2f6f3;padding:8px}.muted{font-size:12px;color:#546b61}.error{color:#a32424}.outline{position:fixed;pointer-events:none;border:3px solid #278653;background:#2786530b}.excluded{border-color:#c63b42;background:repeating-linear-gradient(135deg,#c63b4218 0px,#c63b4218 5px,transparent 5px,transparent 10px)}.hover{border-color:#2563eb;background:#2563eb12}`;
     style.textContent += `.processing{margin:5px 0 7px 18px;padding-left:8px;border-left:2px solid #c5d9cf}.processing label{display:block;font-size:12px;margin:3px 0}.processing select{font-size:12px;padding:3px 5px}select:disabled{opacity:.5;cursor:default}`;
+    style.textContent += `.box{display:flex;flex-direction:column;overflow:hidden;padding:0}.content{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:16px;touch-action:pan-y}.footer{flex-shrink:0;padding:10px 16px;background:#fff;border-top:1px solid #dce5df}.footer .actions{margin:0}.preview-status{margin:0 0 8px;font-weight:600;overflow-wrap:anywhere}.preview-status[data-state=success]{color:#226749}.preview-status[data-state=error],.preview-status[data-state=partial]{color:#a32424}pre{overscroll-behavior:contain;touch-action:pan-y}`;
+    style.textContent += `h3{font-size:14px;margin:0 0 8px}.section{margin-top:14px;padding-top:12px;border-top:1px solid #dce5df}.structure-controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.structure-controls select{width:100%}.tree{max-height:280px;border-radius:6px;padding:6px}.tree details{margin-left:10px}.tree>details{margin-left:0}.tree summary{padding:4px 0;line-height:1.8}.tree .include{display:inline-flex;align-items:center;gap:4px;padding:2px 4px;border-radius:4px;cursor:pointer;font-size:12px;background:#edf6ef}.tree .include input{margin:0;width:14px;height:14px}.tree .removed>.include{background:#fff0f0;color:#a32424}.tree .node-name{margin-left:5px;font-family:ui-monospace,monospace}.tree button{padding:3px 5px}.options>label{display:flex;align-items:start;gap:6px;margin:8px 0}.help{font-size:12px;color:#546b61;margin-top:8px}.help>summary{cursor:pointer}.success{color:#226749}[data-scope-summary]{font-size:12px;color:#546b61}pre{margin:8px 0;max-height:200px;border-radius:6px}[hidden]{display:none!important}`;
     const outlines = document.createElement("div");
     const box = document.createElement("section");
     box.className = "box";
     shadow.append(style, outlines, box);
-    let mode: "root" | "exclude" | undefined;
+    const content = document.createElement("div");
+    content.className = "content";
+    content.tabIndex = 0;
+    content.setAttribute("role", "region");
+    content.setAttribute(
+      "aria-label",
+      "本文範囲の設定とプレビュー（スクロールできます）",
+    );
+    const footer = document.createElement("div");
+    footer.className = "footer";
+    box.append(content, footer);
+    function fitEditor() {
+      const rect = box.getBoundingClientRect();
+      const scale = rect.width / box.offsetWidth || 1;
+      const viewport = window.visualViewport;
+      const width = viewport?.width ?? window.innerWidth;
+      box.style.maxWidth = `${Math.max(80, Math.floor((width - 24) / scale))}px`;
+      const bottom = viewport
+        ? viewport.offsetTop + viewport.height
+        : window.innerHeight;
+      box.style.maxHeight = `${Math.max(80, Math.floor((bottom - rect.top - 12) / scale))}px`;
+    }
+    // Page scroll libraries can cancel wheel events before they reach the editor.
+    // Scroll the closest available editor region explicitly, then keep the event
+    // inside the editor so the source page does not move with it.
+    content.addEventListener(
+      "wheel",
+      (event) => {
+        if (event.ctrlKey) return;
+        const unit =
+          event.deltaMode === 1
+            ? 16
+            : event.deltaMode === 2
+              ? content.clientHeight
+              : 1;
+        const delta = event.deltaY * unit;
+        for (
+          let node = event.target instanceof Element ? event.target : null;
+          node && content.contains(node);
+          node = node.parentElement
+        ) {
+          if (node.scrollHeight <= node.clientHeight) continue;
+          const before = node.scrollTop;
+          node.scrollTop += delta;
+          if (node.scrollTop !== before) break;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      { passive: false },
+    );
+    let mode: "root" | undefined;
     let hovered: Element | undefined;
     let dirty = false;
     let saving = false;
     const make = <K extends keyof HTMLElementTagNameMap>(
       tag: K,
       text: string,
-      parent: Element = box,
+      parent: Element = content,
     ) => {
       const el = document.createElement(tag);
       el.textContent = text;
@@ -503,15 +556,19 @@ export function pageContent(
       return el;
     };
     make("h2", "判定する本文の範囲");
-    make(
-      "p",
-      "緑＝対象、赤＝除外。ページ上で選ぶか、HTMLの構造から子要素を外せます。",
-    ).className = "muted";
     const status = make("p", warnings.join(" "));
     status.className = "error";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
     const summary = make("p", "");
     summary.setAttribute("data-scope-summary", "");
-    const candidatesSelect = make("select", "");
+    const structure = make("section", "");
+    structure.className = "section";
+    structure.setAttribute("data-scope-structure", "");
+    make("h3", "対象と除外", structure);
+    const controls = make("div", "", structure);
+    controls.className = "structure-controls";
+    const candidatesSelect = make("select", "", controls);
     candidatesSelect.setAttribute("aria-label", "本文候補");
     for (const el of [...new Set([...candidates, document.body])]) {
       const option = make(
@@ -521,11 +578,29 @@ export function pageContent(
       );
       option.value = selector(el);
     }
-    const controls = make("div", "");
-    controls.className = "actions";
-    const pick = make("button", "ページ上で対象を選ぶ", controls);
-    const omit = make("button", "ページ上で除外を選ぶ", controls);
     const parent = make("button", "親要素へ", controls);
+    const pick = make("button", "ページ上で対象を選ぶ", controls);
+    make(
+      "p",
+      "チェックを外すと除外、戻すと解除。ページ上では Alt＋クリックでも切り替えられます。",
+      structure,
+    ).className = "muted";
+    const tree = make("div", "", structure);
+    tree.className = "tree";
+    tree.setAttribute("aria-label", "HTMLの構造と除外");
+    const help = make("details", "", structure);
+    help.className = "help";
+    make("summary", "操作と判定の説明", help);
+    make(
+      "p",
+      "緑＝対象、赤＝除外。「この要素以下に絞る」で範囲を狭め、「親要素へ」で一段広げます。",
+      help,
+    );
+    make(
+      "p",
+      "リスト・カード内の子要素を外すと、同じ並びの全項目で同じ位置を除外します。どれか1件でチェックを戻すと全件に戻ります。項目そのもののチェックは、その1件だけを除外します。",
+      help,
+    );
     const selectedGroups = new Map<Element, string>();
     if (itemSelector) selectedGroups.set(root, itemSelector);
     function pattern(el: Element) {
@@ -573,9 +648,13 @@ export function pageContent(
     const itemNote = make(
       "p",
       "ulなどの親要素で「まとめて判定」「子要素を1件ずつ判定」を選べます。1件ずつにすると、その親要素の中を判定対象にします。",
+      help,
     );
     itemNote.className = "muted";
-    const imageLabel = make("label", "");
+    const options = make("section", "");
+    options.className = "section options";
+    make("h3", "判定する内容", options);
+    const imageLabel = make("label", "", options);
     const imageToggle = make("input", "", imageLabel);
     imageToggle.type = "checkbox";
     imageToggle.setAttribute("data-scope-images", "");
@@ -583,8 +662,9 @@ export function pageContent(
     make(
       "p",
       "imgを対象にすると画像判定がオンになります。画像を除外するには構造のチェックを外してください。画像だけでも判定できます。1件あたり4枚まで。動画本体は読み取りません。",
+      help,
     ).className = "muted";
-    const linkLabel = make("label", "");
+    const linkLabel = make("label", "", options);
     const linkToggle = make("input", "", linkLabel);
     linkToggle.type = "checkbox";
     linkToggle.setAttribute("data-scope-links", "");
@@ -592,11 +672,30 @@ export function pageContent(
     make(
       "p",
       "aタグを対象にするとオンになります。contents配下、なければbody配下の本文を取得し、モデルの入力上限の80%以下の文字数に調整します。1件の対象に4リンクまで。未許可のサイトは、対象を確定後に条件画面で取得を許可してください。",
+      help,
     ).className = "muted";
-    const linkRefresh = make("button", "リンク先を取得してプレビュー");
+    const previews = make("section", "");
+    previews.className = "section";
+    const previewTitle = make("h3", "判定する本文のプレビュー", previews);
+    const preview = make("pre", "", previews);
+    preview.setAttribute("data-scope-preview", "");
+    preview.tabIndex = 0;
+    preview.setAttribute("aria-label", "判定する本文のプレビュー");
+    const linkRefresh = make(
+      "button",
+      "リンク先を取得してプレビュー",
+      previews,
+    );
     linkRefresh.setAttribute("data-scope-link-refresh", "");
-    const linkPreview = make("pre", "");
+    const linkPreview = make("pre", "", previews);
     linkPreview.setAttribute("data-scope-link-preview", "");
+    linkPreview.tabIndex = 0;
+    linkPreview.setAttribute("aria-label", "リンク先本文のプレビュー");
+    const linkStatus = make("p", "", footer);
+    linkStatus.className = "preview-status";
+    linkStatus.setAttribute("data-scope-link-status", "");
+    linkStatus.setAttribute("role", "status");
+    linkStatus.setAttribute("aria-live", "polite");
     let previewId = "",
       previewSignature = "";
     function currentScope(): ContentScope {
@@ -623,8 +722,10 @@ export function pageContent(
       cancelLinkPreview();
       if (!linkedPages) return;
       const requestId = (previewId = crypto.randomUUID());
+      linkStatus.dataset.state = "loading";
+      linkStatus.textContent = "リンク先プレビュー：取得中…";
       linkPreview.textContent =
-        "リンク先を取得しています…（プレビューは先頭4リンク）";
+        "リンク先を取得しています…（プレビューは先頭4リンクの本文各3行）";
       void chrome.runtime
         .sendMessage({
           type: "jev-preview-link-scope",
@@ -636,22 +737,31 @@ export function pageContent(
           if (previewId !== requestId || !host.isConnected) return;
           linkPreview.textContent =
             response?.error ?? response?.text ?? "取得できませんでした。";
+          const total = response?.totalCount ?? 0;
+          const success = response?.successCount ?? 0;
+          linkStatus.dataset.state =
+            response?.error || !success
+              ? "error"
+              : success < total
+                ? "partial"
+                : "success";
+          linkStatus.textContent = response?.error
+            ? `リンク先プレビュー：取得失敗 · ${response.error}`
+            : total
+              ? `リンク先プレビュー：${success ? "取得成功" : "取得失敗"} ${success}/${total}件${success < total ? ` · ${total - success}件失敗（詳細はプレビュー内）` : ""}`
+              : "リンク先プレビュー：取得できませんでした。";
+          fitEditor();
         })
         .catch((error) => {
-          if (previewId === requestId && host.isConnected)
+          if (previewId === requestId && host.isConnected) {
             linkPreview.textContent = error.message;
+            linkStatus.dataset.state = "error";
+            linkStatus.textContent = `リンク先プレビュー：取得失敗 · ${error.message}`;
+            fitEditor();
+          }
         });
     }
-    const tree = make("div", "");
-    tree.className = "tree";
-    tree.setAttribute("aria-label", "HTMLの構造と除外");
-    make(
-      "p",
-      "リスト・カード内の子要素を外すと、同じ並びの全項目で同じ位置を除外します。どれか1件でチェックを戻すと全件に戻ります。項目そのもののチェックは、その1件だけを除外します。",
-    ).className = "muted";
-    const preview = make("pre", "");
-    preview.setAttribute("data-scope-preview", "");
-    const actions = make("div", "");
+    const actions = make("div", "", footer);
     actions.className = "actions";
     const save = make(
       "button",
@@ -710,6 +820,7 @@ export function pageContent(
       }
     }
     function changeRoot(el: Element) {
+      if (root !== el) tree.scrollTop = 0;
       for (const rule of sharedExclude) {
         const container = unique(rule.container);
         if (!container || (container !== el && !el.contains(container)))
@@ -742,6 +853,7 @@ export function pageContent(
     function setExcluded(el: Element, omit: boolean) {
       if (omit) {
         if (specificExcluded.size + sharedExclude.length >= 64) {
+          status.className = "error";
           status.textContent =
             "除外設定は64件までです。親要素をまとめて除外してください。";
           render();
@@ -756,7 +868,10 @@ export function pageContent(
           )
             sharedExclude.push(rule);
           status.textContent = `同じ並びの${sharedNodes(rule).length}箇所に除外を適用しました。`;
-        } else specificExcluded.add(el);
+        } else {
+          specificExcluded.add(el);
+          status.textContent = `${label(el)}を除外しました。`;
+        }
       } else {
         if (el instanceof HTMLImageElement) includeImages = true;
         sharedExclude = sharedExclude.filter(
@@ -765,10 +880,12 @@ export function pageContent(
         specificExcluded.delete(el);
         status.textContent = "対応する除外を解除しました。";
       }
+      status.className = "success";
       dirty = true;
       render();
     }
     function render() {
+      status.hidden = !status.textContent;
       rebuildExclusions();
       const text = clean(read(root));
       let entries: ReturnType<typeof items>;
@@ -786,8 +903,15 @@ export function pageContent(
       imageToggle.disabled = saving;
       linkToggle.checked = linkedPages;
       linkToggle.disabled = saving;
-      linkRefresh.hidden = linkPreview.hidden = !linkedPages;
+      linkRefresh.hidden =
+        linkPreview.hidden =
+        linkStatus.hidden =
+          !linkedPages;
       linkRefresh.disabled = saving;
+      preview.hidden = linkedPages && !itemError;
+      previewTitle.textContent = linkedPages
+        ? "リンク先本文のプレビュー"
+        : "判定する本文のプレビュー";
       const linkCount = entries
         ? entries.reduce((sum, item) => sum + (item.links?.length ?? 0), 0)
         : links(root).length;
@@ -804,11 +928,12 @@ export function pageContent(
         cancelLinkPreview();
         previewSignature = "";
       }
-      summary.textContent = `${label(root)} · ${(entries ? entries.reduce((sum, item) => sum + item.text.length, 0) : text.length).toLocaleString()}文字 / ページ全体 ${clean(read(document.body, new Set())).length.toLocaleString()}文字 · 除外 ${excluded.size}件${(entries ? entries.some((item) => item.truncated) : text.length > 48000) ? "（1件の取得は先頭48,000文字まで）" : ""}`;
+      summary.textContent = linkedPages
+        ? `${label(root)} · リンク先 ${linkCount}件 · 除外 ${excluded.size}件`
+        : `${label(root)} · ${(entries ? entries.reduce((sum, item) => sum + item.text.length, 0) : text.length).toLocaleString()}文字 / ページ全体 ${clean(read(document.body, new Set())).length.toLocaleString()}文字 · 除外 ${excluded.size}件${(entries ? entries.some((item) => item.truncated) : text.length > 48000) ? "（1件の取得は先頭48,000文字まで）" : ""}`;
       if (itemSelector)
         summary.textContent += ` · ${entries?.length ?? 0}件を個別判定`;
       if (includeImages) summary.textContent += ` · 画像 ${imageCount}枚`;
-      if (linkedPages) summary.textContent += ` · リンク先 ${linkCount}件`;
       preview.textContent =
         itemError ||
         (entries
@@ -827,7 +952,12 @@ export function pageContent(
         !root.isConnected;
       parent.disabled = saving || root === document.body;
       pick.className = mode === "root" ? "active" : "";
-      omit.className = mode === "exclude" ? "active" : "";
+      pick.textContent =
+        mode === "root"
+          ? "対象をクリック（選択を終了）"
+          : "ページ上で対象を選ぶ";
+      pick.setAttribute("aria-pressed", String(mode === "root"));
+      pick.disabled = candidatesSelect.disabled = saving;
       if (
         ![...candidatesSelect.options].some(
           (option) => option.value === selector(root),
@@ -842,6 +972,7 @@ export function pageContent(
         ),
       );
       const focused = shadow.activeElement?.getAttribute("aria-label");
+      const treeScroll = tree.scrollTop;
       tree.replaceChildren();
       let count = 0;
       function row(el: Element, holder: Element, inherited: boolean) {
@@ -851,16 +982,24 @@ export function pageContent(
         details.open = el === root || expanded.has(details.dataset.path);
         holder.append(details);
         const heading = make("summary", "", details);
-        const checkbox = make("input", "", heading);
+        heading.className = inherited || excluded.has(el) ? "removed" : "";
+        const include = make("label", "", heading);
+        include.className = "include";
+        include.onclick = (event) => event.stopPropagation();
+        const checkbox = make("input", "", include);
         checkbox.type = "checkbox";
         checkbox.checked = !inherited && !excluded.has(el);
         checkbox.disabled = saving || inherited || el === root;
         checkbox.setAttribute("aria-label", `${label(el)}を含める`);
+        if (inherited)
+          include.title =
+            "親要素の除外を解除すると、この要素も対象に戻ります。";
         checkbox.onclick = (event) => event.stopPropagation();
         checkbox.onchange = () => {
           setExcluded(el, !checkbox.checked);
         };
-        make("span", label(el), heading);
+        include.append(checkbox.checked ? "含む" : "除外中");
+        make("span", label(el), heading).className = "node-name";
         const use = make("button", "この要素以下に絞る", heading);
         use.disabled = saving || el === root;
         use.onclick = (event) => {
@@ -927,6 +1066,8 @@ export function pageContent(
           "構造は先頭250要素まで表示しています。対象を狭めるか、ページ上で選択してください。",
           tree,
         );
+      tree.scrollTop = treeScroll;
+      fitEditor();
       paint();
     }
     candidatesSelect.onchange = () => {
@@ -960,10 +1101,6 @@ export function pageContent(
       mode = mode === "root" ? undefined : "root";
       render();
     };
-    omit.onclick = () => {
-      mode = mode === "exclude" ? undefined : "exclude";
-      render();
-    };
     parent.onclick = () => {
       if (root.parentElement && root !== document.body)
         changeRoot(root.parentElement);
@@ -980,6 +1117,7 @@ export function pageContent(
       selectedGroups.clear();
       mode = undefined;
       dirty = true;
+      status.className = "success";
       status.textContent = draftKey
         ? "本文を自動選択します。対象と基準を保存して確定してください。"
         : "新しい条件の対象を自動選択に戻します。";
@@ -991,30 +1129,41 @@ export function pageContent(
     }
     close.onclick = leave;
     function move(event: MouseEvent) {
-      if (!mode || event.composedPath().includes(host)) return;
-      hovered = event.target instanceof Element ? event.target : undefined;
+      if (event.composedPath().includes(host)) return;
+      if (!mode && !event.altKey && !hovered) return;
+      hovered =
+        (mode || event.altKey) && event.target instanceof Element
+          ? event.target
+          : undefined;
       if (hovered?.closest(ignored)) hovered = undefined;
+      if (!mode && hovered && (hovered === root || !root.contains(hovered)))
+        hovered = undefined;
       paint();
     }
     function click(event: MouseEvent) {
       if (
-        !mode ||
+        (!mode && !event.altKey) ||
         saving ||
         event.composedPath().includes(host) ||
         !(event.target instanceof Element)
       )
         return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
       const el = event.target;
       if (el.closest(ignored)) return;
+      if (!mode && (el === root || !root.contains(el))) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
       if (mode === "root") changeRoot(el);
       else {
-        if (el === root || !root.contains(el)) {
-          status.textContent = "対象範囲の中にある子要素を選んでください。";
-          return;
-        }
-        setExcluded(el, !excluded.has(el));
+        // Clicking a child of an excluded element restores that excluded ancestor.
+        let target = el;
+        for (
+          let node: Element | null = el;
+          node && node !== root;
+          node = node.parentElement
+        )
+          if (excluded.has(node)) target = node;
+        setExcluded(target, !excluded.has(target));
       }
     }
     function key(event: KeyboardEvent) {
@@ -1032,6 +1181,9 @@ export function pageContent(
       document.removeEventListener("keydown", key, true);
       window.removeEventListener("scroll", paint, true);
       window.removeEventListener("resize", paint);
+      window.removeEventListener("resize", fitEditor);
+      window.visualViewport?.removeEventListener("resize", fitEditor);
+      window.visualViewport?.removeEventListener("scroll", fitEditor);
       if (state.__jevScopeClose === cleanup) delete state.__jevScopeClose;
     }
     const watch = setInterval(() => {
@@ -1043,6 +1195,9 @@ export function pageContent(
     document.addEventListener("keydown", key, true);
     window.addEventListener("scroll", paint, true);
     window.addEventListener("resize", paint);
+    window.addEventListener("resize", fitEditor);
+    window.visualViewport?.addEventListener("resize", fitEditor);
+    window.visualViewport?.addEventListener("scroll", fitEditor);
     save.onclick = () => {
       if (saving) return;
       saving = true;
@@ -1063,6 +1218,7 @@ export function pageContent(
         })
         .catch((error) => {
           saving = false;
+          status.className = "error";
           status.textContent = error.message;
           render();
         });

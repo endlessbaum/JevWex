@@ -1,8 +1,19 @@
 import { captureKey, captureTab, type CaptureNotice } from "./capture";
-import { cancelPageJudge, jobKey, startPageJudge } from "./page-judge";
+import {
+  cancelPageJudge,
+  invalidateInputJudge,
+  startInputJudge,
+  jobKey,
+  startPageJudge,
+} from "./page-judge";
 import { handlePageCommand } from "./commands";
 import { pageContent, scopeKey, validateScope } from "./content-scope";
-import { readRules } from "./site-rules";
+import { matchingRules, readRules, RULE_PREFIX } from "./site-rules";
+import {
+  inputMonitorRules,
+  installInputMonitor,
+  readInputMonitor,
+} from "./input-monitor";
 import {
   linkCharacterLimit,
   linkPreviewText,
@@ -50,6 +61,56 @@ function cancelLinkPreviews(tabId: number, requestId?: string) {
 }
 
 const latest = new Map<number, string>();
+const monitorSyncs = new Map<number, object>();
+const inputEvents = new Map<string, object>();
+function clearInputEvents(tabId: number) {
+  for (const key of inputEvents.keys())
+    if (key.startsWith(`${tabId}:`)) inputEvents.delete(key);
+}
+async function syncInputMonitor(tabId: number) {
+  const sync = {};
+  monitorSyncs.set(tabId, sync);
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (!tab.url || !/^https?:\/\//.test(tab.url)) return;
+    const rules = inputMonitorRules(matchingRules(await readRules(), tab.url));
+    if (monitorSyncs.get(tabId) !== sync) return;
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: installInputMonitor,
+      args: [rules, tab.url],
+    });
+  } catch {
+    // activeTab or an optional site permission is needed to install the listener.
+    // Opening the extension on that page retries with the user's activeTab grant.
+  } finally {
+    if (monitorSyncs.get(tabId) === sync) monitorSyncs.delete(tabId);
+  }
+}
+async function syncInputMonitors(invalidate = false) {
+  const tabs = await chrome.tabs.query({});
+  await Promise.all(
+    tabs.map((tab) => {
+      if (tab.id === undefined) return;
+      if (invalidate) {
+        clearInputEvents(tab.id);
+        invalidateInputJudge(tab.id);
+      }
+      return syncInputMonitor(tab.id);
+    }),
+  );
+}
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (
+    area === "local" &&
+    Object.keys(changes).some((key) => key.startsWith(RULE_PREFIX))
+  )
+    void syncInputMonitors(true).catch(console.error);
+});
+chrome.permissions.onAdded.addListener(() => {
+  void syncInputMonitors().catch(console.error);
+});
+void syncInputMonitors().catch(console.error);
 async function publishCapture(tab: chrome.tabs.Tab) {
   if (tab.id === undefined) return;
   const id = crypto.randomUUID();
@@ -67,6 +128,7 @@ chrome.action.onClicked.addListener((tab) => {
   // Call immediately inside the user gesture; awaiting capture would lose it.
   void chrome.sidePanel.open({ windowId: tab.windowId }).catch(console.error);
   void publishCapture(tab).catch(console.error);
+  if (tab.id !== undefined) void syncInputMonitor(tab.id);
 });
 chrome.windows.onRemoved.addListener((windowId) => {
   latest.delete(windowId);
@@ -81,6 +143,69 @@ chrome.commands.onCommand.addListener((command, tab) => {
 });
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (sender.id !== chrome.runtime.id) return;
+  if (
+    (message?.type === "jev-input-changed" ||
+      message?.type === "jev-input-ready") &&
+    sender.tab?.id !== undefined &&
+    sender.frameId === 0 &&
+    sender.documentId
+  ) {
+    const tabId = sender.tab.id;
+    const eventKey = `${tabId}:${sender.documentId}`;
+    inputEvents.set(eventKey, message);
+    if (message.type === "jev-input-changed")
+      invalidateInputJudge(tabId, sender.documentId);
+    void (async () => {
+      try {
+        if (message.type !== "jev-input-ready") return;
+        if (
+          typeof message.token !== "string" ||
+          !Number.isSafeInteger(message.revision) ||
+          !Array.isArray(message.ruleIds) ||
+          !message.ruleIds.every((id: unknown) => typeof id === "string")
+        )
+          return;
+        const tab = await chrome.tabs.get(tabId);
+        if (tab.url !== message.url) return;
+        const [snapshot] = await chrome.scripting.executeScript({
+          target: { tabId, documentIds: [sender.documentId!] },
+          func: readInputMonitor,
+        });
+        const state = snapshot?.result;
+        if (
+          !state ||
+          state.token !== message.token ||
+          state.revision !== message.revision
+        )
+          return;
+        const rules = inputMonitorRules(
+          matchingRules(await readRules(), tab.url!),
+        );
+        const ids = rules
+          .filter(
+            (rule) =>
+              message.ruleIds.includes(rule.id) &&
+              state.rules.some(
+                (installed) =>
+                  installed.id === rule.id &&
+                  installed.version === rule.version,
+              ),
+          )
+          .map((rule) => rule.id);
+        if (!ids.length || inputEvents.get(eventKey) !== message) return;
+        await startInputJudge(tabId, {
+          ruleIds: ids,
+          documentId: sender.documentId!,
+          monitor: { token: state.token, revision: state.revision },
+        });
+      } catch {
+        // Navigation, removal, or permission revocation ends this input request.
+      } finally {
+        reply({ ok: true });
+      }
+    })();
+    return true;
+  }
   if (
     typeof message?.type === "string" &&
     message.type.startsWith("jev-cloud-")
@@ -365,12 +490,20 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   }
 });
 chrome.tabs.onRemoved.addListener((tabId) => {
+  clearInputEvents(tabId);
+  monitorSyncs.delete(tabId);
+  invalidateInputJudge(tabId);
   cancelCloudRequests(tabId);
   cancelLinkPreviews(tabId);
   cancelPageJudge(tabId);
   void chrome.storage.session.remove(jobKey(tabId));
 });
 chrome.tabs.onUpdated.addListener((tabId, change) => {
+  if (change.status === "loading" || change.url) {
+    clearInputEvents(tabId);
+    invalidateInputJudge(tabId);
+  }
+  if (change.status === "complete" || change.url) void syncInputMonitor(tabId);
   if (change.status === "loading" || change.url) cancelCloudRequests(tabId);
   if (change.status === "loading" || change.url) cancelLinkPreviews(tabId);
   if (change.status === "loading" || change.url) cancelPageJudge(tabId);

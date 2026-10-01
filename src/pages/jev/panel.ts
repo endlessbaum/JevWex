@@ -13,6 +13,7 @@ import {
   readRules,
   saveRule,
   setRuleEnabled,
+  setRuleWatchInput,
   scopeNames,
   type SiteRule,
   type UrlScope,
@@ -141,6 +142,32 @@ function renderRules() {
     edit.textContent = "対象・基準を編集";
     edit.onclick = () => void openRule(rule).catch((e) => error(e.message));
     row.append(label, edit);
+    if (rule.contentScope?.inputValue) {
+      const watchLabel = document.createElement("label");
+      watchLabel.className = "rule-toggle";
+      const watch = document.createElement("input");
+      watch.type = "checkbox";
+      watch.checked = !!rule.watchInput;
+      watch.setAttribute("role", "switch");
+      watch.setAttribute("aria-label", `${rule.name}の入力監視`);
+      watchLabel.append(
+        `入力監視（停止から50ms後）${rule.enabled ? "" : " · 条件がオフのため停止中"}`,
+        watch,
+      );
+      row.append(watchLabel);
+      watch.onchange = () =>
+        void (async () => {
+          watch.disabled = true;
+          try {
+            await setRuleWatchInput(rule.id, watch.checked);
+            await loadRules();
+          } catch (e) {
+            watch.checked = !!rule.watchInput;
+            watch.disabled = false;
+            error((e as Error).message);
+          }
+        })();
+    }
     host.append(row);
     box.onchange = () =>
       void (async () => {
@@ -400,6 +427,7 @@ async function openRule(rule?: SiteRule) {
   $<HTMLInputElement>("create-name").value = rule?.name ?? "";
   $<HTMLInputElement>("create-url").value = rule?.url ?? page.url;
   $<HTMLSelectElement>("create-scope").value = rule?.scope ?? "exact";
+  $<HTMLInputElement>("create-watch").checked = !!rule?.watchInput;
   $("create-title").textContent = rule
     ? "対象と判定基準を編集"
     : "対象と判定基準を保存";
@@ -470,6 +498,7 @@ $("create-save").onclick = () =>
           url: $<HTMLInputElement>("create-url").value,
           scope: $<HTMLSelectElement>("create-scope").value as UrlScope,
           enabled: editingRule?.enabled ?? true,
+          watchInput: $<HTMLInputElement>("create-watch").checked,
           criteria: editor.read(),
           contentScope: draftScope,
         },

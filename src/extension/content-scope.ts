@@ -11,6 +11,7 @@ export interface ContentScope {
   items?: string;
   images?: boolean;
   linkedPages?: boolean;
+  inputValue?: boolean;
   sharedExclude?: { container: string; items: string; path: string }[];
 }
 export const scopeKey = (url: string) =>
@@ -19,6 +20,9 @@ export function validateScope(value: unknown): ContentScope {
   const s = value as ContentScope;
   if (
     !s ||
+    (s.inputValue !== undefined && typeof s.inputValue !== "boolean") ||
+    (s.inputValue === true &&
+      (!s.root || s.items || s.images || s.linkedPages)) ||
     (s.images !== undefined && typeof s.images !== "boolean") ||
     (s.linkedPages !== undefined && typeof s.linkedPages !== "boolean") ||
     (s.images === true && s.linkedPages === true) ||
@@ -51,6 +55,7 @@ export function validateScope(value: unknown): ContentScope {
     ...(s.items ? { items: s.items } : {}),
     ...(s.images ? { images: true } : {}),
     ...(s.linkedPages ? { linkedPages: true } : {}),
+    ...(s.inputValue ? { inputValue: true } : {}),
     ...(s.sharedExclude?.length
       ? {
           sharedExclude: s.sharedExclude.map(({ container, items, path }) => ({
@@ -70,7 +75,7 @@ export async function readScope(url: string): Promise<ContentScope> {
 export function describeScope(scope?: ContentScope): string {
   if (!scope) return "本文を自動選択";
   const excluded = scope.exclude.length + (scope.sharedExclude?.length ?? 0);
-  return `${scope.root ?? "本文を自動選択"} · ${scope.items ? "子要素を1件ずつ" : "まとめて判定"}${scope.images ? " · 画像を含む" : ""}${scope.linkedPages ? " · リンク先の本文を判定" : ""}${excluded ? ` · 除外設定 ${excluded}件` : ""}`;
+  return `${scope.root ?? "本文を自動選択"} · ${scope.inputValue ? "入力欄の値を判定" : scope.items ? "子要素を1件ずつ" : "まとめて判定"}${scope.images ? " · 画像を含む" : ""}${scope.linkedPages ? " · リンク先の本文を判定" : ""}${excluded ? ` · 除外設定 ${excluded}件` : ""}`;
 }
 
 // Runs in the isolated world; keep every DOM helper inside this function.
@@ -84,7 +89,14 @@ export function pageContent(
     if (expectedUrl && location.href !== expectedUrl)
       throw new Error("ページが移動しました。再取得してください。");
     const ignored =
-      "script,style,noscript,template,input,textarea,select,[data-jev-overlay],[data-jev-scope-editor]";
+      "script,style,noscript,template,select,input[type]:not([type=text i]):not([type=search i]):not([type=url i]):not([type=email i]):not([type=tel i]),[data-jev-overlay],[data-jev-scope-editor]";
+    const textEntry = (el: Element) =>
+      el instanceof HTMLTextAreaElement ||
+      (el instanceof HTMLInputElement &&
+        ["text", "search", "url", "email", "tel"].includes(el.type)) ||
+      (el instanceof HTMLElement &&
+        el.isContentEditable &&
+        !el.parentElement?.isContentEditable);
     const visible = (el: Element) => {
       const style = getComputedStyle(el);
       return (
@@ -161,6 +173,7 @@ export function pageContent(
     let itemSelector = scope.items;
     let includeImages = scope.images === true;
     let linkedPages = scope.linkedPages === true;
+    let inputValue = scope.inputValue === true;
     const warnings: string[] = [];
     function unique(path: string): Element | undefined {
       const nodes = document.querySelectorAll(path);
@@ -289,8 +302,21 @@ export function pageContent(
     }
     promoteExclusions();
     if (warnings.length && !editing) throw new Error(warnings[0]);
+    if (inputValue && !textEntry(root) && !editing)
+      throw new Error(
+        "保存した対象はテキスト入力欄ではありません。対象を選び直してください。",
+      );
+    if (editing && !textEntry(root)) inputValue = false;
     function read(el: Element, omissions = excluded): string {
       if (omissions.has(el) || el.matches(ignored) || !visible(el)) return "";
+      if (
+        inputValue &&
+        el === root &&
+        (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)
+      )
+        return el.value;
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)
+        return "";
       let text = "";
       const preserve = /pre|break-spaces/.test(getComputedStyle(el).whiteSpace);
       for (const child of el.childNodes) {
@@ -651,6 +677,11 @@ export function pageContent(
       help,
     );
     itemNote.className = "muted";
+    make(
+      "p",
+      "input・textarea・編集可能な欄を対象にすると、その入力値を判定します。空欄でも保存できます。自動判定は条件画面の「入力監視」でオンにしてください。",
+      help,
+    ).className = "muted";
     const options = make("section", "");
     options.className = "section options";
     make("h3", "判定する内容", options);
@@ -706,6 +737,7 @@ export function pageContent(
         ...(itemSelector ? { items: itemSelector } : {}),
         ...(includeImages ? { images: true } : {}),
         ...(linkedPages ? { linkedPages: true } : {}),
+        ...(inputValue ? { inputValue: true } : {}),
       };
     }
     function cancelLinkPreview() {
@@ -833,6 +865,11 @@ export function pageContent(
       });
       itemSelector = undefined;
       root = el;
+      inputValue = textEntry(el);
+      if (inputValue) {
+        includeImages = false;
+        linkedPages = false;
+      }
       if (el instanceof HTMLImageElement) {
         includeImages = true;
         linkedPages = false;
@@ -900,18 +937,20 @@ export function pageContent(
         ? entries.reduce((sum, item) => sum + (item.images?.length ?? 0), 0)
         : images(root).length;
       imageToggle.checked = includeImages;
-      imageToggle.disabled = saving;
+      imageToggle.disabled = saving || inputValue;
       linkToggle.checked = linkedPages;
-      linkToggle.disabled = saving;
+      linkToggle.disabled = saving || inputValue;
       linkRefresh.hidden =
         linkPreview.hidden =
         linkStatus.hidden =
           !linkedPages;
       linkRefresh.disabled = saving;
       preview.hidden = linkedPages && !itemError;
-      previewTitle.textContent = linkedPages
-        ? "リンク先本文のプレビュー"
-        : "判定する本文のプレビュー";
+      previewTitle.textContent = inputValue
+        ? "判定する入力値のプレビュー"
+        : linkedPages
+          ? "リンク先本文のプレビュー"
+          : "判定する本文のプレビュー";
       const linkCount = entries
         ? entries.reduce((sum, item) => sum + (item.links?.length ?? 0), 0)
         : links(root).length;
@@ -934,6 +973,7 @@ export function pageContent(
       if (itemSelector)
         summary.textContent += ` · ${entries?.length ?? 0}件を個別判定`;
       if (includeImages) summary.textContent += ` · 画像 ${imageCount}枚`;
+      if (inputValue) summary.textContent += " · 入力欄の値を判定";
       preview.textContent =
         itemError ||
         (entries
@@ -948,7 +988,7 @@ export function pageContent(
       save.disabled =
         saving ||
         !!itemError ||
-        (linkedPages ? !linkCount : !text && !imageCount) ||
+        (linkedPages ? !linkCount : !inputValue && !text && !imageCount) ||
         !root.isConnected;
       parent.disabled = saving || root === document.body;
       pick.className = mode === "root" ? "active" : "";
@@ -1018,7 +1058,8 @@ export function pageContent(
           make("option", "子要素を1件ずつ判定", method).value = "individual";
           const active = el === root && !!itemSelector;
           method.value = active ? "individual" : "combined";
-          method.disabled = saving || inherited || excluded.has(el);
+          method.disabled =
+            saving || inherited || excluded.has(el) || textEntry(el);
           const query =
             (active ? itemSelector : selectedGroups.get(el)) ?? groups[0].query;
           method.onchange = () =>
@@ -1112,6 +1153,7 @@ export function pageContent(
       excluded.clear();
       includeImages = false;
       linkedPages = false;
+      inputValue = false;
       specificExcluded.clear();
       sharedExclude = [];
       selectedGroups.clear();

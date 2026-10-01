@@ -8,6 +8,7 @@ export interface SiteRule {
   url: string;
   scope: UrlScope;
   enabled: boolean;
+  watchInput?: boolean;
   criteria: CriterionDraft[];
   contentScope?: ContentScope;
 }
@@ -87,6 +88,7 @@ export function validateRule(value: unknown): SiteRule {
     r.url.length > 4096 ||
     !["exact", "subtree", "origin"].includes(r.scope) ||
     typeof r.enabled !== "boolean" ||
+    (r.watchInput !== undefined && typeof r.watchInput !== "boolean") ||
     !Array.isArray(r.criteria)
   )
     throw new Error("条件名・URL・適用範囲を確認してください。");
@@ -108,12 +110,17 @@ export function validateRule(value: unknown): SiteRule {
       throw new Error("判定基準の形式が正しくありません。");
   }
   buildInput("保存条件の検証", r.criteria);
+  if (r.watchInput && !r.contentScope?.inputValue)
+    throw new Error(
+      "入力監視には「対象を調整する」でテキスト入力欄を指定してください。",
+    );
   return {
     id: r.id,
     name: r.name.trim(),
     url: normalizeUrl(r.url, r.scope),
     scope: r.scope,
     enabled: r.enabled,
+    ...(r.watchInput ? { watchInput: true } : {}),
     criteria: structuredClone(r.criteria),
     ...(r.contentScope !== undefined
       ? { contentScope: validateScope(r.contentScope) }
@@ -180,6 +187,16 @@ export function setRuleEnabled(id: string, enabled: boolean) {
     if (!rule)
       throw new Error("この条件は削除されています。一覧を確認してください。");
     const clean = { ...rule, enabled };
+    await chrome.storage.local.set({ [RULE_PREFIX + id]: clean });
+    return clean;
+  });
+}
+export function setRuleWatchInput(id: string, watchInput: boolean) {
+  return withRules(async () => {
+    const rule = (await readAndMigrate()).find((rule) => rule.id === id);
+    if (!rule)
+      throw new Error("この条件は削除されています。一覧を確認してください。");
+    const clean = validateRule({ ...rule, watchInput });
     await chrome.storage.local.set({ [RULE_PREFIX + id]: clean });
     return clean;
   });

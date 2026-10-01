@@ -1,6 +1,7 @@
 import type { PageCapture } from "./capture";
 import type { WebResult } from "./judge-channel";
 import type { PageTarget } from "./content-scope";
+import type { InputRevision } from "./input-monitor";
 
 export interface OverlayResult {
   target?: PageTarget;
@@ -10,6 +11,7 @@ export interface OverlayResult {
   answers: { name: string; value: string; details: string[] }[];
 }
 export interface OverlayData {
+  monitor?: InputRevision;
   jobId: string;
   url: string;
   phase: "running" | "complete" | "error" | "cancelled";
@@ -52,9 +54,11 @@ export function summarizeResult(
 export function renderOverlay(data: OverlayData): boolean {
   if (location.href !== data.url) return false;
   const globals = globalThis as typeof globalThis & {
+    __jevInputMonitor?: InputRevision;
     __jevPageTargets?: { nodes: Map<string, WeakRef<Element>> };
     __jevOverlay?: {
       jobId: string;
+      monitor?: InputRevision;
       host: HTMLElement;
       root: ShadowRoot;
       dismissed: boolean;
@@ -80,6 +84,12 @@ export function renderOverlay(data: OverlayData): boolean {
       };
     };
   };
+  if (
+    data.monitor &&
+    (globals.__jevInputMonitor?.token !== data.monitor.token ||
+      globals.__jevInputMonitor.revision !== data.monitor.revision)
+  )
+    return false;
   let state = globals.__jevOverlay;
   if (state?.jobId === data.jobId && state.dismissed) return false;
   if (!state || state.jobId !== data.jobId) {
@@ -96,6 +106,7 @@ export function renderOverlay(data: OverlayData): boolean {
       "all:initial!important;position:fixed!important;top:16px!important;right:16px!important;width:min(380px,calc(100vw - 32px))!important;max-height:calc(100vh - 32px)!important;z-index:2147483647!important;display:block!important;color-scheme:light!important";
     const root = host.attachShadow({ mode: "closed" });
     state = {
+      monitor: data.monitor,
       jobId: data.jobId,
       host,
       root,

@@ -59,6 +59,23 @@ label {
   margin-top: 18px;
   font-weight: 650;
 }
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: #276953;
+}
+.checkbox-label span {
+  min-width: 0;
+}
 button,
 select,
 input,

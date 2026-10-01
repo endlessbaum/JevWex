@@ -48,6 +48,8 @@ export class SitePage {
           <label class="site-check"><input id="site-enabled" type="checkbox" checked>この条件を有効にする</label>
           <h3>判定対象</h3><p id="site-target" class="muted"></p>
           <button id="site-target-edit" class="secondary">対象を調整する</button>
+          <label class="site-check"><input id="site-watch" type="checkbox">入力監視をオンにする（停止から50ms後に判定）</label>
+          <p class="muted">対象にはinput・textarea・編集可能な欄を指定してください。日本語の変換中は待機します。</p>
           <h3>判定基準</h3><div id="site-criteria"></div>
           <button id="site-add" class="secondary">＋ 判定基準を追加</button>
           <button id="site-copy" class="secondary">判定ページの基準をコピー</button>
@@ -153,6 +155,7 @@ export class SitePage {
     this.el<HTMLInputElement>("site-url").value = rule?.url ?? "";
     this.el<HTMLSelectElement>("site-scope").value = rule?.scope ?? "exact";
     this.el<HTMLInputElement>("site-enabled").checked = rule?.enabled ?? true;
+    this.el<HTMLInputElement>("site-watch").checked = !!rule?.watchInput;
     void this.imagePermissions.update(
       this.contentScope,
       rule?.url ?? "",
@@ -200,7 +203,7 @@ export class SitePage {
       const title = document.createElement("h2");
       title.textContent = rule.name;
       const detail = document.createElement("p");
-      detail.textContent = `${rule.enabled ? "有効" : "無効"} · ${scopeNames[rule.scope]} · ${rule.criteria.length}基準`;
+      detail.textContent = `${rule.enabled ? "有効" : "無効"} · ${scopeNames[rule.scope]} · ${rule.criteria.length}基準${rule.contentScope?.inputValue ? ` · 入力監視${rule.watchInput ? "オン" : "オフ"}` : ""}`;
       const url = document.createElement("p");
       url.className = "site-url";
       url.textContent = rule.url;
@@ -281,6 +284,7 @@ export class SitePage {
           url: this.el<HTMLInputElement>("site-url").value,
           scope: this.el<HTMLSelectElement>("site-scope").value as UrlScope,
           enabled: this.el<HTMLInputElement>("site-enabled").checked,
+          watchInput: this.el<HTMLInputElement>("site-watch").checked,
           criteria: this.editor.read(),
           contentScope: this.contentScope,
         },

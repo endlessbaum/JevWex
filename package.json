@@ -22,6 +22,7 @@
     "test:extension:repeated": "node tests/extension/repeated.mjs",
     "test:extension:shared": "node tests/extension/shared-exclusions.mjs",
     "test:extension:targets": "node tests/extension/target-rules.mjs",
+    "test:extension:input-monitor": "node tests/extension/input-monitor.mjs",
     "test:extension:page-images": "node tests/extension/page-images.mjs",
     "test:extension:page-links": "node tests/extension/page-links.mjs",
     "test:extension:result-targets": "node tests/extension/result-targets.mjs",

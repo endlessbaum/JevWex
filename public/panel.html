@@ -34,6 +34,13 @@
         <fieldset id="create-fields">
           <p id="create-target" class="muted"></p>
           <button id="create-target-edit">対象を調整する</button>
+          <label class="checkbox-label">
+            <input id="create-watch" type="checkbox" />
+            <span>入力監視をオンにする</span>
+          </label>
+          <p class="muted">
+            対象にinput・textarea・編集可能な欄を指定すると、入力が止まって50ms後に自動判定します。日本語の変換中は待機します。
+          </p>
           <label
             >条件名<input
               id="create-name"

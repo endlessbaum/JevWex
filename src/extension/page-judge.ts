@@ -10,6 +10,7 @@ import {
 import { matchingRules, readRules } from "./site-rules";
 import { showOverlay, summarizeResult, type OverlayData } from "./overlay";
 import { linkCharacterLimit, linkInput, loadLinkExcerpts } from "./page-links";
+import type { InputRevision } from "./input-monitor";
 
 export const jobKey = (tabId: number) => `jev-page-job:${tabId}`;
 export type CaptureMode = "auto" | "text" | "selection";
@@ -46,8 +47,33 @@ interface Job {
   controller: AbortController;
   capture?: PageCapture;
   data?: OverlayData;
+  input?: { monitor: InputRevision; ruleIds: string[]; documentId: string };
+  done: Promise<void>;
 }
 const jobs = new Map<number, Job>();
+const pendingInputs = new Map<number, { documentId: string }>();
+
+export function invalidateInputJudge(tabId: number, documentId?: string) {
+  if (!documentId || pendingInputs.get(tabId)?.documentId === documentId)
+    pendingInputs.delete(tabId);
+  const job = jobs.get(tabId);
+  if (job?.input && (!documentId || job.input.documentId === documentId))
+    job.controller.abort();
+}
+export async function startInputJudge(
+  tabId: number,
+  input: NonNullable<Job["input"]>,
+) {
+  const pending = { documentId: input.documentId };
+  pendingInputs.set(tabId, pending);
+  const current = jobs.get(tabId);
+  if (current) await current.done;
+  if (pendingInputs.get(tabId) !== pending) return;
+  pendingInputs.delete(tabId);
+  // An explicit judgement started while we were waiting takes priority.
+  if (jobs.has(tabId)) return;
+  createJob(tabId, "text", input);
+}
 
 // A short-lived client exists only during a page judgement, including shortcuts.
 // It does not require a panel document to exist.
@@ -171,20 +197,29 @@ async function publish(job: Job) {
 }
 export function cancelPageJudge(tabId: number, jobId?: string) {
   const job = jobs.get(tabId);
-  if (job && (!jobId || job.id === jobId)) job.controller.abort();
+  if (!jobId || job?.id === jobId) {
+    pendingInputs.delete(tabId);
+    job?.controller.abort();
+  }
 }
 export function startPageJudge(tabId: number, mode: CaptureMode = "auto") {
   if (jobs.has(tabId))
     throw new Error(
       "このページは判定中です。オーバーレイの中止ボタンを使ってください。",
     );
+  pendingInputs.delete(tabId);
+  return createJob(tabId, mode);
+}
+function createJob(tabId: number, mode: CaptureMode, input?: Job["input"]) {
   const job: Job = {
     id: crypto.randomUUID(),
     tabId,
     controller: new AbortController(),
+    input,
+    done: Promise.resolve(),
   };
   jobs.set(tabId, job);
-  void run(job, mode);
+  job.done = run(job, mode);
   return job.id;
 }
 async function run(job: Job, mode: CaptureMode) {
@@ -202,7 +237,10 @@ async function run(job: Job, mode: CaptureMode) {
     });
     job.capture = await captureTab(job.tabId, { root: null, exclude: [] });
     const capture = job.capture;
+    if (job.input && capture.documentId !== job.input.documentId)
+      throw new Error("入力の監視対象のページが変わりました。");
     job.data = {
+      ...(job.input ? { monitor: job.input.monitor } : {}),
       jobId: job.id,
       url: capture.url,
       phase: "running",
@@ -211,7 +249,13 @@ async function run(job: Job, mode: CaptureMode) {
     };
     await publish(job);
     signal.throwIfAborted();
-    const rules = matchingRules(await readRules(), capture.url);
+    const rules = matchingRules(await readRules(), capture.url).filter(
+      (rule) =>
+        !job.input ||
+        (rule.watchInput &&
+          rule.contentScope?.inputValue &&
+          job.input.ruleIds.includes(rule.id)),
+    );
     if (!rules.length)
       throw new Error(
         "このURLでオンになっている判定条件がありません。パネルで条件を作成するかオンにしてください。",
@@ -233,6 +277,8 @@ async function run(job: Job, mode: CaptureMode) {
             "ページが移動しました。再実行してください。",
           );
         const inputs = pageInputs(target, "text");
+        // Clearing an input invalidates the previous result without inference.
+        if (job.input && inputs.every((input) => !input.text.trim())) continue;
         if (
           !inputs.length ||
           inputs.some(
@@ -253,6 +299,12 @@ async function run(job: Job, mode: CaptureMode) {
     const manager = plans.some((plan) => plan.inputs.length)
       ? await client.discover(signal)
       : undefined;
+    if (job.input && !plans.length) {
+      job.data.phase = "complete";
+      job.data.message = "入力欄が空のため、次の入力を待っています。";
+      await publish(job);
+      return;
+    }
     let failures = 0;
     const itemCount = plans.reduce(
       (sum, plan) => sum + plan.inputs.filter((input) => input.item).length,
@@ -353,6 +405,7 @@ async function run(job: Job, mode: CaptureMode) {
       ? "判定を中止しました。"
       : (e as Error).message;
     if (job.data) {
+      if (job.input && signal.aborted) job.data.results = [];
       job.data.phase = signal.aborted ? "cancelled" : "error";
       job.data.message = message;
       await publish(job).catch(() => {});

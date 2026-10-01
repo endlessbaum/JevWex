@@ -6,6 +6,7 @@ import {
   normalizeUrl,
   validateRule,
   setRuleEnabled,
+  setRuleWatchInput,
   RULE_PREFIX,
   readRules,
   saveRule,
@@ -64,6 +65,59 @@ const rule: SiteRule = {
     },
   ],
 };
+
+test("input monitoring is opt-in and requires an explicit input target", () => {
+  assert.equal(validateRule(rule).watchInput, undefined);
+  assert.throws(() => validateRule({ ...rule, watchInput: "on" }), /確認/);
+  assert.throws(() => validateRule({ ...rule, watchInput: true }), /入力欄/);
+  const scope = { root: "#message", exclude: [], inputValue: true };
+  assert.equal(
+    validateRule({ ...rule, contentScope: scope, watchInput: true }).watchInput,
+    true,
+  );
+  for (const invalid of [
+    { ...scope, inputValue: "yes" },
+    { ...scope, root: null },
+    { ...scope, items: ":scope > input" },
+    { ...scope, images: true },
+    { ...scope, linkedPages: true },
+  ])
+    assert.throws(
+      () => validateRule({ ...rule, contentScope: invalid }),
+      /本文範囲/,
+    );
+});
+
+test("watch toggles preserve concurrent criteria changes and never restore deleted rules", async () => {
+  const key = RULE_PREFIX + rule.id;
+  const data: Record<string, unknown> = {
+    [key]: {
+      ...rule,
+      name: "最新の条件",
+      enabled: false,
+      contentScope: { root: "#message", exclude: [], inputValue: true },
+    },
+  };
+  Object.assign(globalThis, {
+    chrome: {
+      storage: {
+        local: {
+          get: async () => structuredClone(data),
+          set: async (values: Record<string, unknown>) =>
+            Object.assign(data, values),
+        },
+      },
+    },
+  });
+  const enabled = await setRuleWatchInput(rule.id, true);
+  assert.equal(enabled.name, "最新の条件");
+  assert.equal(enabled.enabled, false);
+  assert.equal(enabled.watchInput, true);
+  assert.deepEqual(enabled.criteria, rule.criteria);
+  assert.equal((await setRuleWatchInput(rule.id, false)).watchInput, undefined);
+  delete data[key];
+  await assert.rejects(setRuleWatchInput(rule.id, true), /削除/);
+});
 
 test("exact URL ignores fragments, preserves queries and origin boundaries", () => {
   assert.equal(matchesUrl(rule, rule.url + "#heading"), true);
